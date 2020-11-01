@@ -3,10 +3,10 @@ import { Message } from 'discord.js'
 import { Logger } from '~/services/logger'
 import chalk from 'chalk'
 
-export type Command = {
+export type Command<T = string[]> = {
   bot: Bot
   message: Message
-  args: string[]
+  args: T
   name: string
 }
 

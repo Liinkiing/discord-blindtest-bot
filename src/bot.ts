@@ -1,14 +1,24 @@
 import { Client } from 'discord.js'
 import { BaseCommand } from '~/commands/base-command'
 import * as Commands from '~/commands'
+import * as Managers from '~/managers'
+import { BlindtestManager } from '~/managers'
 import { Logger } from '~/services/logger'
+import { BaseManager } from '~/managers/manager'
 
 export class Bot {
   private readonly _client: Client
   private _commands: BaseCommand[] = []
+  private _managers: BaseManager[] = []
 
   get client(): Client {
     return this._client
+  }
+
+  get blindtestManager(): BlindtestManager {
+    return this._managers.find(
+      manager => manager instanceof BlindtestManager
+    ) as BlindtestManager
   }
 
   get commands(): BaseCommand[] {
@@ -27,6 +37,7 @@ export class Bot {
     await this._client.login(token)
     Logger.success(`Logged in as ${this.name}`)
     this.initCommands()
+    this.initManagers()
 
     return true
   }
@@ -34,7 +45,16 @@ export class Bot {
   private initCommands(): void {
     Logger.info('Initializing commands')
     this._commands.push(
-      ...[new Commands.PingCommand(this), new Commands.AudioCommand(this)]
+      ...[
+        new Commands.PingCommand(this),
+        new Commands.AudioCommand(this),
+        new Commands.BlindtestCommand(this),
+      ]
     )
+  }
+
+  private initManagers(): void {
+    Logger.info('Initializing managers')
+    this._managers.push(...[new Managers.BlindtestManager(this)])
   }
 }
