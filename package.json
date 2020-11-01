@@ -32,6 +32,7 @@
     "dotenv-flow": "^3.2.0",
     "ffmpeg-static": "^4.2.7",
     "fluent-ffmpeg": "^2.1.2",
+    "lodash-es": "^4.17.15",
     "mobx": "^6.0.1",
     "pretty-error": "^2.1.2",
     "ytdl-core": "^4.0.1"
@@ -47,6 +48,7 @@
     "@rollup/plugin-replace": "^2.3.3",
     "@types/express": "^4.17.8",
     "@types/fluent-ffmpeg": "^2.1.16",
+    "@types/lodash": "^4.14.164",
     "@types/rollup": "^0.54.0",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",

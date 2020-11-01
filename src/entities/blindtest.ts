@@ -1,5 +1,13 @@
 import events from 'events'
-import { makeObservable, observable, action, autorun, reaction } from 'mobx'
+import { shuffle } from 'lodash'
+import {
+  makeObservable,
+  observable,
+  action,
+  autorun,
+  reaction,
+  computed,
+} from 'mobx'
 import { Player } from '~/entities/player'
 import { GuildMember } from 'discord.js'
 import { DiscordUserID } from '~/@types'
@@ -7,9 +15,15 @@ import { Logger } from '~/services/logger'
 import { Song } from '~/entities/song'
 import allSongs from '~/data/songs.json'
 
-const MAX_DURATION = 8 * 1000
+const MAX_DURATION = 30 * 1000
+
+enum State {
+  Pending,
+  Running,
+}
 
 export class Blindtest extends events.EventEmitter {
+  @observable public state: State = State.Pending
   @observable public owner!: Player
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
@@ -43,7 +57,8 @@ export class Blindtest extends events.EventEmitter {
     )
   }
 
-  public start() {
+  public start(): void {
+    this.state = State.Running
     this.timeout = setInterval(() => {
       this.emit('max-duration-exceed')
       this.popQueue()
@@ -51,9 +66,19 @@ export class Blindtest extends events.EventEmitter {
     this.initQueue()
   }
 
+  @computed
+  get isRunning(): boolean {
+    return this.state === State.Running
+  }
+
+  @computed
+  get currentSong(): Song | null {
+    return this.queue.length > 0 ? this.queue[0] : null
+  }
+
   @action
   public initQueue(): void {
-    this.queue = allSongs.map(song => new Song(song))
+    this.queue = shuffle(allSongs.map(song => new Song(song)))
   }
 
   @action

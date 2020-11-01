@@ -1,5 +1,7 @@
 import ffpmegInstaller from '@ffmpeg-installer/ffmpeg'
 import ffmpeg from 'fluent-ffmpeg'
+import os from 'os'
+import path from 'path'
 import ytdl from 'ytdl-core'
 import { Logger } from '~/services/logger'
 import * as fs from 'fs'
@@ -10,7 +12,7 @@ interface DownloadParams {
   offset?: number
 }
 
-const PATH = '/tmp/sound.ogg'
+const PATH = path.resolve(os.tmpdir(), 'sound.ogg')
 
 class YTDownloaderApp {
   constructor(options: { ffmpeg: { path: string; version: string } }) {

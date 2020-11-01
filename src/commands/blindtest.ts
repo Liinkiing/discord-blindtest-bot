@@ -37,7 +37,6 @@ export class BlindtestCommand extends BaseCommand {
 
   private handleStart({ bot, message }: Command) {
     if (bot.blindtestManager.blindtest) {
-      message.channel.send('@everyone' + ' le blindtest va commencer!')
       bot.blindtestManager.startBlindtest(message)
     }
   }
@@ -56,7 +55,7 @@ export class BlindtestCommand extends BaseCommand {
   private handleJoin({ bot, message }: Command) {
     if (!bot.blindtestManager.blindtest) {
       message.reply(
-        "Aucun blindtest n'est en cours. '!blindtest start' pour en créér un."
+        "Aucun blindtest n'est en cours. '!blindtest create' pour en créér un."
       )
     } else if (
       bot.blindtestManager.blindtest &&
