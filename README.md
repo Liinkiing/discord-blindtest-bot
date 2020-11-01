@@ -8,7 +8,7 @@ It includes by default support for aliases in `tsconfig.json`.
 It is defaulted to `~/*`, so you can import stuff like this
 
 ```typescript
-import { Logger } from '~/services/Logger'
+import { Logger } from '~/services/logger'
 
 const logger = new Logger()
 ```

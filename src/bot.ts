@@ -1,6 +1,7 @@
 import { Client } from 'discord.js'
 import { BaseCommand } from '~/commands/base-command'
-import { PingCommand } from '~/commands/ping'
+import * as Commands from '~/commands'
+import { Logger } from '~/services/logger'
 
 export class Bot {
   private readonly _client: Client
@@ -8,6 +9,10 @@ export class Bot {
 
   get client(): Client {
     return this._client
+  }
+
+  get commands(): BaseCommand[] {
+    return this._commands
   }
 
   get name(): string {
@@ -20,12 +25,16 @@ export class Bot {
 
   public async login(token: string): Promise<boolean> {
     await this._client.login(token)
+    Logger.success(`Logged in as ${this.name}`)
     this.initCommands()
 
     return true
   }
 
   private initCommands(): void {
-    this._commands.push(...[new PingCommand(this)])
+    Logger.info('Initializing commands')
+    this._commands.push(
+      ...[new Commands.PingCommand(this), new Commands.AudioCommand(this)]
+    )
   }
 }
