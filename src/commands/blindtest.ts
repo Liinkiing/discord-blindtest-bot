@@ -1,7 +1,7 @@
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 
-type Options = 'start' | 'join' | 'leave' | 'end'
+type Options = 'start' | 'players' | 'create' | 'join' | 'leave' | 'end'
 
 export class BlindtestCommand extends BaseCommand {
   _name = 'blindtest'
@@ -17,6 +17,12 @@ export class BlindtestCommand extends BaseCommand {
       case 'start':
         this.handleStart({ bot, args, message, name })
         break
+      case 'players':
+        this.handlePlayers({ bot, args, message, name })
+        break
+      case 'create':
+        this.handleCreate({ bot, args, message, name })
+        break
       case 'join':
         this.handleJoin({ bot, args, message, name })
         break
@@ -31,19 +37,8 @@ export class BlindtestCommand extends BaseCommand {
 
   private handleStart({ bot, message }: Command) {
     if (bot.blindtestManager.blindtest) {
-      message.reply(
-        `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
-      )
-    } else {
-      message.reply('Y a R frérot go game sale')
-      if (message.member) {
-        bot.blindtestManager.createBlindtest(
-          new Player({
-            id: message.member.id,
-            displayName: message.member.displayName,
-          })
-        )
-      }
+      message.channel.send('@everyone' + ' le blindtest va commencer!')
+      bot.blindtestManager.startBlindtest(message)
     }
   }
 
@@ -63,8 +58,17 @@ export class BlindtestCommand extends BaseCommand {
       message.reply(
         "Aucun blindtest n'est en cours. '!blindtest start' pour en créér un."
       )
+    } else if (
+      bot.blindtestManager.blindtest &&
+      message.member &&
+      bot.blindtestManager.blindtest.hasMemberJoined(message.member)
+    ) {
+      message.reply('BAKAAAA BAKA BAKA tu es dans le blindtest')
     } else {
       message.reply('Bonsoir grand étalon, bienvenue dans le blindtest')
+      if (message.member) {
+        bot.blindtestManager.blindtest.addPlayer(new Player(message.member))
+      }
     }
   }
 
@@ -78,6 +82,28 @@ export class BlindtestCommand extends BaseCommand {
       message.reply("Tu ne fais plus parti du blindtest :'(")
     } else {
       message.reply("BAKA BAKAAA BAKAAA tu n'es dans aucun blindtest")
+    }
+  }
+
+  private handleCreate({ bot, message }: Command) {
+    if (bot.blindtestManager.blindtest) {
+      message.reply(
+        `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
+      )
+    } else {
+      message.reply('Bien vu mon reuf je te créé le blindtest')
+      if (message.member) {
+        bot.blindtestManager.createBlindtest(new Player(message.member))
+      }
+    }
+  }
+
+  private handlePlayers({ bot, message }: Command) {
+    if (bot.blindtestManager.blindtest) {
+      message.reply('Liste des joueurs : ')
+      bot.blindtestManager.blindtest.players.forEach(player => {
+        message.reply(player.displayName)
+      })
     }
   }
 }

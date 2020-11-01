@@ -1,13 +1,20 @@
 import events from 'events'
-import { makeObservable, observable, action, autorun } from 'mobx'
+import { makeObservable, observable, action, autorun, reaction } from 'mobx'
 import { Player } from '~/entities/player'
 import { GuildMember } from 'discord.js'
 import { DiscordUserID } from '~/@types'
 import { Logger } from '~/services/logger'
+import { Song } from '~/entities/song'
+import allSongs from '~/data/songs.json'
+
+const MAX_DURATION = 8 * 1000
 
 export class Blindtest extends events.EventEmitter {
   @observable public owner!: Player
   @observable public players: Player[] = []
+  @observable public queue: Song[] = []
+
+  timeout: NodeJS.Timeout | null = null
 
   constructor() {
     super()
@@ -20,6 +27,39 @@ export class Blindtest extends events.EventEmitter {
         Logger.info('A player joined the blindtest')
       }
     })
+    reaction(
+      () => this.queue,
+      queue => {
+        if (queue.length > 0) {
+          this.emit('on-song-changed', queue[0])
+        } else {
+          Logger.info('No more songs.')
+          this.emit('no-more-songs')
+          if (this.timeout) {
+            clearInterval(this.timeout)
+          }
+        }
+      }
+    )
+  }
+
+  public start() {
+    this.timeout = setInterval(() => {
+      this.emit('max-duration-exceed')
+      this.popQueue()
+    }, MAX_DURATION)
+    this.initQueue()
+  }
+
+  @action
+  public initQueue(): void {
+    this.queue = allSongs.map(song => new Song(song))
+  }
+
+  @action
+  public popQueue(): void {
+    const [, ...items] = this.queue
+    this.queue = [...items]
   }
 
   @action
@@ -51,6 +91,9 @@ export class Blindtest extends events.EventEmitter {
 
 type EventsMap = {
   'no-player': () => void
+  'max-duration-exceed': () => void
+  'on-song-changed': (song: Song) => void
+  'no-more-songs': () => void
 }
 
 export declare interface Blindtest {
