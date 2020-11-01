@@ -1,6 +1,5 @@
-import { Logger } from '~/services/Logger'
-
-const t = new Logger()
-t.logSuperSecret()
-
-console.log('Making the world a better place!')
+import { Bot } from '~/bot'
+;(async () => {
+  const bot = new Bot()
+  await bot.login(process.env.BOT_TOKEN)
+})()

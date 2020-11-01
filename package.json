@@ -18,14 +18,16 @@
   ],
   "scripts": {
     "prestart": "yarn build",
-    "start": "cross-env NODE_ENV=production node -r dotenv-flow/config dist/cjs/index.js",
+    "start": "cross-env NODE_ENV=production node -r pretty-error/start -r dotenv-flow/config dist/cjs/index.js",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "rimraf dist && rollup -c",
     "build:watch": "rimraf dist && rollup -c -w"
   },
   "dependencies": {
     "cross-env": "^7.0.2",
-    "dotenv-flow": "^3.2.0"
+    "discord.js": "^12.4.1",
+    "dotenv-flow": "^3.2.0",
+    "pretty-error": "^2.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
