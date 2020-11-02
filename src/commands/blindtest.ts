@@ -2,7 +2,7 @@ import yargs from 'yargs'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 
-type Options = 'start' | 'players' | 'create' | 'join' | 'leave' | 'end'
+type Options = 'start' | 'players' | 'create' | 'join' | 'leave' | 'stop'
 
 export class BlindtestCommand extends BaseCommand {
   _name = 'blindtest'
@@ -33,8 +33,8 @@ export class BlindtestCommand extends BaseCommand {
       case 'leave':
         this.handleLeave({ bot, args, message, name })
         break
-      case 'end':
-        this.handleEnd({ bot, args, message, name })
+      case 'stop':
+        this.handleStop({ bot, args, message, name })
         break
     }
   }
@@ -57,7 +57,7 @@ export class BlindtestCommand extends BaseCommand {
     }
   }
 
-  private handleEnd({ bot, message }: Command) {
+  private handleStop({ bot, message }: Command) {
     if (
       !bot.blindtestManager.blindtest ||
       !bot.blindtestManager.blindtest.isRunning
@@ -137,6 +137,11 @@ export class BlindtestCommand extends BaseCommand {
           `Le blindtest a bien été créé.${
             limit > 0
               ? ' Une limite de ' + limit + ' musiques a été définie.'
+              : ''
+          }${
+            categories.length > 0
+              ? ' Seule les musiques appartenant aux catégories suivantes seront disponibles : ' +
+                categories.join(', ')
               : ''
           }`
         )
