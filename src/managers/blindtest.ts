@@ -73,6 +73,7 @@ export class BlindtestManager extends BaseManager {
           })
         )
       }
+      this.blindtest?.createTimeout()
     }
   }
 

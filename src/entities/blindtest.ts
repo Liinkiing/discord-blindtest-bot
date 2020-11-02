@@ -63,7 +63,6 @@ export class Blindtest extends events.EventEmitter {
         }
         if (queue.length > 0) {
           this.emit('on-song-changed', queue[0])
-          this.createTimeout()
         } else {
           Logger.info('No more songs.')
           this.emit('end')
@@ -75,10 +74,9 @@ export class Blindtest extends events.EventEmitter {
   public async start(): Promise<void> {
     await this.initQueue()
     this.state = State.Running
-    this.createTimeout()
   }
 
-  private createTimeout(): void {
+  public createTimeout(): void {
     this._timestamp = Date.now()
     const oldCurrentSong = this.currentSong
     this.timeout = setInterval(() => {
