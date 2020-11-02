@@ -11,7 +11,7 @@ export class BlindtestCommand extends BaseCommand {
     args,
     message,
     name,
-  }: Command<[Options]>): Promise<void> {
+  }: Command<[Options, string]>): Promise<void> {
     const [option] = args
     switch (option) {
       case 'start':
@@ -114,7 +114,9 @@ export class BlindtestCommand extends BaseCommand {
     }
   }
 
-  private handleCreate({ bot, message }: Command) {
+  private handleCreate({ bot, message, args }: Command) {
+    const [, limitArg] = args
+    const limit = limitArg ? Number(limitArg) : 0
     if (bot.blindtestManager.blindtest) {
       message.reply(
         `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
@@ -123,9 +125,16 @@ export class BlindtestCommand extends BaseCommand {
       if (message.member) {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
-          message.channel
+          message.channel,
+          { limit }
         )
-        message.reply('Le blindtest a bien été créé')
+        message.reply(
+          `Le blindtest a bien été créé.${
+            limit > 0
+              ? ' Une limite de ' + limit + ' musiques a été définie.'
+              : ''
+          }`
+        )
       }
     }
   }

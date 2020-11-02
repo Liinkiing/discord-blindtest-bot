@@ -1,5 +1,10 @@
 import { BaseManager } from '~/managers/manager'
-import { Blindtest, Bonus, POINTS_PER_TITLE } from '~/entities/blindtest'
+import {
+  Blindtest,
+  BlindtestOptions,
+  Bonus,
+  POINTS_PER_TITLE,
+} from '~/entities/blindtest'
 import { Logger } from '~/services/logger'
 import { Player } from '~/entities/player'
 import { Bot } from '~/bot'
@@ -27,8 +32,12 @@ export class BlindtestManager extends BaseManager {
     super(bot)
   }
 
-  public createBlindtest(owner: Player, channel: Channel): void {
-    this.blindtest = new Blindtest().setOwner(owner)
+  public createBlindtest(
+    owner: Player,
+    channel: Channel,
+    options?: BlindtestOptions
+  ): void {
+    this.blindtest = new Blindtest(options).setOwner(owner)
     this._channel = channel
     this.initListeners()
     Logger.success(`Created blindtest with owner ${owner.toString()}`)
