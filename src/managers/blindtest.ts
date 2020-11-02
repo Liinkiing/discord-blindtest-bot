@@ -1,5 +1,5 @@
 import { BaseManager } from '~/managers/manager'
-import { Blindtest } from '~/entities/blindtest'
+import { Blindtest, Bonus, POINTS_PER_TITLE } from '~/entities/blindtest'
 import { Logger } from '~/services/logger'
 import { Player } from '~/entities/player'
 import { Bot } from '~/bot'
@@ -104,20 +104,37 @@ export class BlindtestManager extends BaseManager {
     message: Message
   ): void => {
     message.channel.send(
-      `(+1pts) pour ${player.displayName}, qui ` +
-        `a trouvé l'artiste, qui était ${artist}.`
+      `(+1pts) pour ${player.displayName} pour avoir ` +
+        `trouvé l'artiste, qui était "${artist}".`
     )
   }
 
   private onTitleFound = (
     title: string,
     player: Player,
-    message: Message
+    message: Message,
+    bonus: Bonus
   ): void => {
-    message.channel.send(
-      `(+1pts) pour ${player.displayName}, qui ` +
-        `a trouvé le nom de la musique, qui était ${title}. On passe à la suivante`
-    )
+    if (bonus === 3) {
+      message.channel.send(
+        `(+${bonus + POINTS_PER_TITLE}pts) pour ${
+          player.displayName
+        } pour avoir ` +
+          `trouvé le nom de la musique en moins de 2s (t'es un bot c'est pas possible), qui était "${title}". On passe à la suivante`
+      )
+    } else if (bonus === 1) {
+      message.channel.send(
+        `(+${bonus + POINTS_PER_TITLE}pts) pour ${
+          player.displayName
+        } pour avoir ` +
+          `trouvé le nom de la musique en moins de 5s, qui était "${title}". On passe à la suivante`
+      )
+    } else {
+      message.channel.send(
+        `(+1pts) pour ${player.displayName}, qui ` +
+          `a trouvé le nom de la musique, qui était "${title}". On passe à la suivante`
+      )
+    }
   }
 
   private onNewOwnerRequest = (owner: Player): void => {

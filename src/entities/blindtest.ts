@@ -17,9 +17,11 @@ import { Song } from '~/entities/song'
 import AirtableApiClient from '~/services/airtable-api'
 import { SongMapper } from '~/mappers/song'
 
-const MAX_DURATION = 20 * 1000
-const POINTS_PER_ARTIST = 1
-const POINTS_PER_TITLE = 1
+export const MAX_DURATION = 20 * 1000
+export const POINTS_PER_ARTIST = 1
+export const POINTS_PER_TITLE = 1
+
+export type Bonus = 0 | 1 | 3
 
 enum State {
   Pending,
@@ -39,6 +41,7 @@ export class Blindtest extends events.EventEmitter {
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
 
+  private _timestamp = Date.now()
   private _results: Map<YouTubeURL, Map<DiscordUserID, FoundType>> = new Map()
 
   timeout: NodeJS.Timeout | null = null
@@ -76,6 +79,7 @@ export class Blindtest extends events.EventEmitter {
   }
 
   private createTimeout(): void {
+    this._timestamp = Date.now()
     const oldCurrentSong = this.currentSong
     this.timeout = setInterval(() => {
       if (oldCurrentSong && oldCurrentSong === this.currentSong) {
@@ -197,8 +201,17 @@ export class Blindtest extends events.EventEmitter {
               r => !r.foundTitle
             )
           ) {
-            player.addPoints(POINTS_PER_TITLE)
-            this.emit('on-title-found', this.currentSong.title, player, message)
+            const bonusPoints = this.computeBonusPoint(
+              Date.now() - this._timestamp
+            )
+            player.addPoints(POINTS_PER_TITLE + bonusPoints)
+            this.emit(
+              'on-title-found',
+              this.currentSong.title,
+              player,
+              message,
+              bonusPoints
+            )
           }
           this._results
             .get(this.currentSong.url)!
@@ -225,6 +238,17 @@ ${p.displayName} : ${p.points} pts`
   public hasMemberJoined(member: GuildMember): boolean {
     return !!this.players.find(p => p.id === member.id)
   }
+
+  private computeBonusPoint(diff: number): Bonus {
+    if (diff < 2000) {
+      return 3
+    }
+    if (diff < 5000) {
+      return 1
+    }
+
+    return 0
+  }
 }
 
 type EventsMap = {
@@ -232,7 +256,12 @@ type EventsMap = {
   'new-owner-request': (newOwner: Player) => void
   'max-duration-exceeded': (currentSong: Song) => void
   'on-artist-found': (artist: string, player: Player, message: Message) => void
-  'on-title-found': (title: string, player: Player, message: Message) => void
+  'on-title-found': (
+    title: string,
+    player: Player,
+    message: Message,
+    bonus: Bonus
+  ) => void
   'on-song-changed': (song: Song) => void
   end: () => void
 }
