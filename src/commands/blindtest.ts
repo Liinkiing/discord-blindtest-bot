@@ -97,12 +97,12 @@ export class BlindtestCommand extends BaseCommand {
         `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
       )
     } else {
-      message.reply('Bien vu mon reuf je te créé le blindtest')
       if (message.member) {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
           message.channel
         )
+        message.reply('Le blindtest a bien été créé')
       }
     }
   }

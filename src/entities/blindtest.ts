@@ -7,13 +7,15 @@ import {
   autorun,
   reaction,
   computed,
+  runInAction,
 } from 'mobx'
 import { Player } from '~/entities/player'
 import { GuildMember, Message } from 'discord.js'
 import { DiscordUserID } from '~/@types'
 import { Logger } from '~/services/logger'
 import { Song } from '~/entities/song'
-import allSongs from '~/data/songs.json'
+import AirtableApiClient from '~/services/airtable-api'
+import { SongMapper } from '~/mappers/song'
 
 const MAX_DURATION = 20 * 1000
 const POINTS_PER_ARTIST = 1
@@ -63,21 +65,21 @@ export class Blindtest extends events.EventEmitter {
           Logger.info('No more songs.')
           this.emit('end')
         }
-      },
-      { fireImmediately: false }
+      }
     )
   }
 
-  public start(): void {
+  public async start(): Promise<void> {
+    await this.initQueue()
     this.state = State.Running
     this.createTimeout()
-    this.initQueue()
   }
 
   private createTimeout(): void {
+    const oldCurrentSong = this.currentSong
     this.timeout = setInterval(() => {
-      if (this.currentSong) {
-        this.emit('max-duration-exceeded', this.currentSong)
+      if (oldCurrentSong && oldCurrentSong === this.currentSong) {
+        this.emit('max-duration-exceeded', oldCurrentSong)
         this.nextSong()
       }
     }, MAX_DURATION)
@@ -94,14 +96,17 @@ export class Blindtest extends events.EventEmitter {
   }
 
   @action
-  public initQueue(): void {
-    this.queue = shuffle(allSongs.map(song => new Song(song)))
-    this.queue.forEach(song => {
-      const users = new Map<DiscordUserID, FoundType>()
-      this.players.forEach(player => {
-        users.set(player.id, { foundArtist: false, foundTitle: false })
+  public async initQueue(): Promise<void> {
+    const records = await AirtableApiClient.songs().select().all()
+    runInAction(() => {
+      this.queue = shuffle(records.map(SongMapper.fromApi))
+      this.queue.forEach(song => {
+        const users = new Map<DiscordUserID, FoundType>()
+        this.players.forEach(player => {
+          users.set(player.id, { foundArtist: false, foundTitle: false })
+        })
+        this._results.set(song.url, users)
       })
-      this._results.set(song.url, users)
     })
   }
 

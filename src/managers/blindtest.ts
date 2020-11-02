@@ -38,7 +38,7 @@ export class BlindtestManager extends BaseManager {
     if (this.blindtest && message.member?.voice.channel) {
       message.channel.send('@everyone' + ' le blindtest va commencer!')
       this._connection = await message.member.voice.channel.join()
-      this.blindtest.start()
+      await this.blindtest.start()
     } else {
       message.channel.send(
         'Wsh mon reuf, tu dois être dans un vocal pour lancer un blindtest'

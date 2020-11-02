@@ -26,6 +26,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "airtable": "^0.10.0",
     "chalk": "^4.1.0",
     "cross-env": "^7.0.2",
     "discord.js": "^12.4.1",
@@ -46,6 +47,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@rollup/plugin-replace": "^2.3.3",
+    "@types/airtable": "^0.8.1",
     "@types/express": "^4.17.8",
     "@types/fluent-ffmpeg": "^2.1.16",
     "@types/lodash": "^4.14.164",
