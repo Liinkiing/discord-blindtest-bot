@@ -1,3 +1,4 @@
+import yargs from 'yargs'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 
@@ -13,6 +14,9 @@ export class BlindtestCommand extends BaseCommand {
     name,
   }: Command<[Options, string]>): Promise<void> {
     const [option] = args
+    const argv = yargs(args)
+      .option('limit', { alias: 'l', boolean: false, number: true, default: 0 })
+      .option('categories', { alias: 'c', array: true, default: [] }).argv
     switch (option) {
       case 'start':
         this.handleStart({ bot, args, message, name })
@@ -21,7 +25,7 @@ export class BlindtestCommand extends BaseCommand {
         this.handlePlayers({ bot, args, message, name })
         break
       case 'create':
-        this.handleCreate({ bot, args, message, name })
+        this.handleCreate({ bot, args, message, name }, argv)
         break
       case 'join':
         this.handleJoin({ bot, args, message, name })
@@ -114,9 +118,10 @@ export class BlindtestCommand extends BaseCommand {
     }
   }
 
-  private handleCreate({ bot, message, args }: Command) {
-    const [, limitArg] = args
-    const limit = limitArg ? Number(limitArg) : 0
+  private handleCreate(
+    { bot, message }: Command,
+    { limit, categories }: { categories: string[]; limit: number }
+  ) {
     if (bot.blindtestManager.blindtest) {
       message.reply(
         `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
@@ -126,7 +131,7 @@ export class BlindtestCommand extends BaseCommand {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
           message.channel,
-          { limit }
+          { limit, categories }
         )
         message.reply(
           `Le blindtest a bien été créé.${

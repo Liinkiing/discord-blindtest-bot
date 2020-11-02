@@ -70,9 +70,19 @@ export class BlindtestManager extends BaseManager {
       if (this._streamDsipatcher) {
         this._streamDsipatcher.pause(true)
       }
-      const infos = await ytdl.getBasicInfo(song.url)
-      if (infos.player_response.playabilityStatus.status === 'UNPLAYABLE') {
-        Logger.warn(`Video ${song.url} is UNPLAYABLE. Skipping it.`)
+      let infos
+      try {
+        infos = await ytdl.getBasicInfo(song.url)
+      } catch (e) {
+        infos = null
+      }
+      if (
+        !infos ||
+        infos.player_response.playabilityStatus.status === 'UNPLAYABLE'
+      ) {
+        Logger.warn(
+          `Video ${song.url} is UNPLAYABLE or could not get informations. Skipping it.`
+        )
         this.blindtest?.nextSong()
       } else if (song.start === 0) {
         const stream = ytdl(song.url, { filter: 'audioonly' })

@@ -37,6 +37,7 @@ type YouTubeURL = string
 
 export type BlindtestOptions = {
   limit: number
+  categories: string[]
 }
 
 export class Blindtest extends events.EventEmitter {
@@ -45,15 +46,17 @@ export class Blindtest extends events.EventEmitter {
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
 
-  private _limit = 0
+  private readonly _limit: number = 0
+  private readonly _categories: string[] = []
   private _timestamp = Date.now()
   private _results: Map<YouTubeURL, Map<DiscordUserID, FoundType>> = new Map()
 
   timeout: NodeJS.Timeout | null = null
 
-  constructor(options: BlindtestOptions = { limit: 0 }) {
+  constructor(options: BlindtestOptions = { limit: 0, categories: [] }) {
     super()
     this._limit = options.limit
+    this._categories = options.categories
     makeObservable(this)
     autorun(() => {
       if (this.players.length === 0) {
@@ -107,7 +110,12 @@ export class Blindtest extends events.EventEmitter {
   public async initQueue(): Promise<void> {
     const records = await AirtableApiClient.songs().select().all()
     runInAction(() => {
-      const songs = shuffle(records.map(SongMapper.fromApi))
+      let songs = shuffle(records.map(SongMapper.fromApi))
+      if (this._categories.length > 0) {
+        songs = songs.filter(s =>
+          s.categories.some(c => this._categories.includes(c))
+        )
+      }
       this.queue = songs.slice(0, this._limit > 0 ? this._limit : songs.length)
       this.queue.forEach(song => {
         const users = new Map<DiscordUserID, FoundType>()
