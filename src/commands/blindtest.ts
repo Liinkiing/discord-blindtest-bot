@@ -5,7 +5,7 @@ import { Player } from '~/entities/player'
 type Options = 'start' | 'players' | 'create' | 'join' | 'leave' | 'stop'
 
 export class BlindtestCommand extends BaseCommand {
-  _name = 'blindtest'
+  _name = 'bt'
 
   public async execute({
     bot,
