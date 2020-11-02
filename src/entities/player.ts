@@ -2,16 +2,22 @@ import chalk from 'chalk'
 import { Blindtest } from '~/entities/blindtest'
 import { DiscordUserID } from '~/@types'
 import { GuildMember } from 'discord.js'
+import { action, makeObservable, observable } from 'mobx'
 
 export class Player {
   public id: DiscordUserID
   public displayName: string
-  public points = 0
-  public blindtest: Blindtest | null = null
+  @observable public points = 0
 
   constructor(member: GuildMember) {
     this.id = member.id
     this.displayName = member.displayName
+    makeObservable(this)
+  }
+
+  @action
+  public addPoints(points: number) {
+    this.points += points
   }
 
   public toString(): string {

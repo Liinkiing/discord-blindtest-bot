@@ -36,8 +36,15 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handleStart({ bot, message }: Command) {
-    if (bot.blindtestManager.blindtest) {
+    if (
+      bot.blindtestManager.blindtest &&
+      message.author.id === bot.blindtestManager.blindtest.owner.id
+    ) {
       bot.blindtestManager.startBlindtest(message)
+    } else if (bot.blindtestManager.blindtest) {
+      message.reply(
+        `Seul le créateur du blindtest (${bot.blindtestManager.blindtest.owner.displayName}) peut démarrer le blindtest!`
+      )
     }
   }
 
@@ -77,7 +84,7 @@ export class BlindtestCommand extends BaseCommand {
       message.member &&
       bot.blindtestManager.blindtest.hasMemberJoined(message.member)
     ) {
-      bot.blindtestManager.blindtest.removePlayer(message.member.id)
+      bot.blindtestManager.blindtest.removePlayer(message.member)
       message.reply("Tu ne fais plus parti du blindtest :'(")
     } else {
       message.reply("BAKA BAKAAA BAKAAA tu n'es dans aucun blindtest")
@@ -92,7 +99,10 @@ export class BlindtestCommand extends BaseCommand {
     } else {
       message.reply('Bien vu mon reuf je te créé le blindtest')
       if (message.member) {
-        bot.blindtestManager.createBlindtest(new Player(message.member))
+        bot.blindtestManager.createBlindtest(
+          new Player(message.member),
+          message.channel
+        )
       }
     }
   }
