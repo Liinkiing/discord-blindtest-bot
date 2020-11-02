@@ -38,6 +38,11 @@ export class BlindtestCommand extends BaseCommand {
   private handleStart({ bot, message }: Command) {
     if (
       bot.blindtestManager.blindtest &&
+      bot.blindtestManager.blindtest.isRunning
+    ) {
+      message.reply(`Un blindtest est déjà en cours!`)
+    } else if (
+      bot.blindtestManager.blindtest &&
       message.author.id === bot.blindtestManager.blindtest.owner.id
     ) {
       bot.blindtestManager.startBlindtest(message)
@@ -49,9 +54,21 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handleEnd({ bot, message }: Command) {
-    if (bot.blindtestManager.blindtest) {
+    if (
+      !bot.blindtestManager.blindtest ||
+      !bot.blindtestManager.blindtest.isRunning
+    ) {
+      message.reply(`Aucun blindtest n'est en cours!`)
+    } else if (
+      bot.blindtestManager.blindtest &&
+      message.author.id === bot.blindtestManager.blindtest.owner.id
+    ) {
       message.reply("J'arrête le blindtest.")
       bot.blindtestManager.endBlindtest()
+    } else if (bot.blindtestManager.blindtest) {
+      message.reply(
+        `Seul le créateur du blindtest (${bot.blindtestManager.blindtest.owner.displayName}) peut stopper le blindtest!`
+      )
     } else {
       message.reply(
         `Y a aucun blindtest en cours mon reuf. '!blindtest start' pour en créér un.`
@@ -70,6 +87,12 @@ export class BlindtestCommand extends BaseCommand {
       bot.blindtestManager.blindtest.hasMemberJoined(message.member)
     ) {
       message.reply('BAKAAAA BAKA BAKA tu es dans le blindtest')
+    } else if (
+      bot.blindtestManager.blindtest &&
+      message.member &&
+      bot.blindtestManager.blindtest.isRunning
+    ) {
+      message.reply('Tu ne peux pas rejoindre un blindtest qui a déjà commencé')
     } else {
       message.reply('Bonsoir grand étalon, bienvenue dans le blindtest')
       if (message.member) {
