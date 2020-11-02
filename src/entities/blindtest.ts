@@ -240,10 +240,10 @@ ${p.displayName} : ${p.points} pts`
   }
 
   private computeBonusPoint(diff: number): Bonus {
-    if (diff < 2000) {
+    if (diff < 3000) {
       return 3
     }
-    if (diff < 5000) {
+    if (diff < 6000) {
       return 1
     }
 

@@ -120,14 +120,14 @@ export class BlindtestManager extends BaseManager {
         `(+${bonus + POINTS_PER_TITLE}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de la musique en moins de 2s (t'es un bot c'est pas possible), qui était "${title}". On passe à la suivante`
+          `trouvé le nom de la musique en moins de 3s (t'es un bot c'est pas possible), qui était "${title}". On passe à la suivante`
       )
     } else if (bonus === 1) {
       message.channel.send(
         `(+${bonus + POINTS_PER_TITLE}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de la musique en moins de 5s, qui était "${title}". On passe à la suivante`
+          `trouvé le nom de la musique en moins de 6s, qui était "${title}". On passe à la suivante`
       )
     } else {
       message.channel.send(
