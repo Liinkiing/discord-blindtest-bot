@@ -5,6 +5,7 @@ import {
   Bonus,
   POINTS_PER_ARTIST,
   POINTS_PER_TITLE,
+  State,
 } from '~/entities/blindtest'
 import { Logger } from '~/services/logger'
 import { Player } from '~/entities/player'
@@ -116,8 +117,12 @@ export class BlindtestManager extends BaseManager {
 
   private onEnd = (): void => {
     if (this._channel && this.blindtest) {
-      this._channel.send('Blindtest terminé, merci les kheys, voici les points')
-      this._channel.send(this.blindtest.printScores())
+      if (this.blindtest.state === State.Running) {
+        this._channel.send(
+          'Blindtest terminé, merci les kheys, voici les points'
+        )
+        this._channel.send(this.blindtest.printScores())
+      }
       this.endBlindtest()
     }
   }
@@ -190,7 +195,9 @@ export class BlindtestManager extends BaseManager {
   private onMaxDurationExceeded = (currentSong: Song): void => {
     if (this._channel) {
       this._channel.send(
-        `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${currentSong.title}", par "${currentSong.artist}"`
+        `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${
+          currentSong.title
+        }"${currentSong.artist ? `, par ${currentSong.artist}` : ''}`
       )
     }
   }

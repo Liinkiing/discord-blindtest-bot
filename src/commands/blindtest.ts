@@ -2,7 +2,14 @@ import yargs from 'yargs'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 
-type Options = 'start' | 'players' | 'create' | 'join' | 'leave' | 'stop'
+type Options =
+  | 'start'
+  | 'players'
+  | 'create'
+  | 'join'
+  | 'delete'
+  | 'leave'
+  | 'stop'
 
 export class BlindtestCommand extends BaseCommand {
   _name = 'bt'
@@ -20,6 +27,9 @@ export class BlindtestCommand extends BaseCommand {
     switch (option) {
       case 'start':
         this.handleStart({ bot, args, message, name })
+        break
+      case 'delete':
+        this.handleDelete({ bot, args, message, name })
         break
       case 'players':
         this.handlePlayers({ bot, args, message, name })
@@ -57,6 +67,17 @@ export class BlindtestCommand extends BaseCommand {
     }
   }
 
+  private handleDelete({ bot, message }: Command) {
+    if (
+      bot.blindtestManager.blindtest &&
+      !bot.blindtestManager.blindtest.isRunning &&
+      message.author.id === bot.blindtestManager.blindtest.owner.id
+    ) {
+      bot.blindtestManager.blindtest.emit('end')
+      message.reply(`Blindtest supprimé`)
+    }
+  }
+
   private handleStop({ bot, message }: Command) {
     if (
       !bot.blindtestManager.blindtest ||
@@ -75,7 +96,7 @@ export class BlindtestCommand extends BaseCommand {
       )
     } else {
       message.reply(
-        `Y a aucun blindtest en cours mon reuf. '!blindtest start' pour en créér un.`
+        `Y a aucun blindtest en cours mon reuf. '!blindtest start' pour en créer un.`
       )
     }
   }
@@ -83,7 +104,7 @@ export class BlindtestCommand extends BaseCommand {
   private handleJoin({ bot, message }: Command) {
     if (!bot.blindtestManager.blindtest) {
       message.reply(
-        "Aucun blindtest n'est en cours. '!blindtest create' pour en créér un."
+        "Aucun blindtest n'est en cours. '!blindtest create' pour en créer un."
       )
     } else if (
       bot.blindtestManager.blindtest &&

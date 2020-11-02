@@ -23,7 +23,7 @@ export const POINTS_PER_TITLE = 1
 
 export type Bonus = 0 | 1 | 3
 
-enum State {
+export enum State {
   Pending,
   Running,
 }
