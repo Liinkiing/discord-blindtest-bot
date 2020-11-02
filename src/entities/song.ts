@@ -1,14 +1,14 @@
 export interface ISong {
   url: string
   title: string
-  artist: string
+  artist?: string
   start: number
 }
 
 export class Song implements ISong {
   public url: string
   public title: string
-  public artist: string
+  public artist?: string
   public start: number
 
   constructor({ url, title, artist, start }: ISong) {

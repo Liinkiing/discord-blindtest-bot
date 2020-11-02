@@ -159,6 +159,7 @@ export class Blindtest extends events.EventEmitter {
       return { foundArtist: false, foundTitle: false }
     if (this.currentSong && !message.author.bot && !message.partial) {
       if (
+        this.currentSong.artist &&
         message.content
           .toLowerCase()
           .includes(this.currentSong.artist.toLowerCase())

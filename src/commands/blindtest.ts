@@ -64,7 +64,7 @@ export class BlindtestCommand extends BaseCommand {
       message.author.id === bot.blindtestManager.blindtest.owner.id
     ) {
       message.reply("J'arrête le blindtest.")
-      bot.blindtestManager.endBlindtest()
+      bot.blindtestManager.blindtest?.emit('end')
     } else if (bot.blindtestManager.blindtest) {
       message.reply(
         `Seul le créateur du blindtest (${bot.blindtestManager.blindtest.owner.displayName}) peut stopper le blindtest!`
