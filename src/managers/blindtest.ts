@@ -132,7 +132,7 @@ export class BlindtestManager extends BaseManager {
   private onMaxDurationExceeded = (currentSong: Song): void => {
     if (this._channel) {
       this._channel.send(
-        `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${currentSong.title}, par "${currentSong.artist}"`
+        `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${currentSong.title}", par "${currentSong.artist}"`
       )
     }
   }
