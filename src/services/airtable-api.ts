@@ -15,7 +15,9 @@ class AirtableApiClientApp {
   }
 
   public songs(): Table {
-    return this.client.base(this.baseId).table('songs')
+    return this.client
+      .base(this.baseId)
+      .table(process.env.AIRTABLE_TABLE_NAME ?? 'songs')
   }
 }
 

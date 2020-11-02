@@ -3,6 +3,7 @@ import {
   Blindtest,
   BlindtestOptions,
   Bonus,
+  POINTS_PER_ARTIST,
   POINTS_PER_TITLE,
 } from '~/entities/blindtest'
 import { Logger } from '~/services/logger'
@@ -106,9 +107,9 @@ export class BlindtestManager extends BaseManager {
       this.blindtest.isRunning &&
       this.blindtest.hasMemberJoined(message.member)
     ) {
-      const result = this.blindtest.guessSong(message)
-      if (result.foundTitle) {
-        this.blindtest.nextSong()
+      const { foundTitle, foundArtist } = this.blindtest.guessSong(message)
+      if (foundTitle && foundArtist && this.blindtest.nextSong()) {
+        message.channel.send('===== LANCEMENT DE LA PROCHAINE MUSIQUE =====')
       }
     }
   }
@@ -124,12 +125,29 @@ export class BlindtestManager extends BaseManager {
   private onArtistFound = (
     artist: string,
     player: Player,
-    message: Message
+    message: Message,
+    bonus: Bonus
   ): void => {
-    message.channel.send(
-      `(+1pts) pour ${player.displayName} pour avoir ` +
-        `trouvé l'artiste, qui était "${artist}".`
-    )
+    if (bonus === 3) {
+      message.channel.send(
+        `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
+          player.displayName
+        } pour avoir ` +
+          `trouvé le nom de l'artiste en moins de 3s (t'es un bot c'est pas possible), qui était "${artist}".`
+      )
+    } else if (bonus === 1) {
+      message.channel.send(
+        `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
+          player.displayName
+        } pour avoir ` +
+          `trouvé le nom de l'artiste en moins de 6s, qui était "${artist}".`
+      )
+    } else {
+      message.channel.send(
+        `(+${POINTS_PER_ARTIST}pts) pour ${player.displayName}, qui ` +
+          `a trouvé le nom de l'artiste, qui était "${artist}".`
+      )
+    }
   }
 
   private onTitleFound = (
@@ -143,19 +161,19 @@ export class BlindtestManager extends BaseManager {
         `(+${bonus + POINTS_PER_TITLE}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de la musique en moins de 3s (t'es un bot c'est pas possible), qui était "${title}". On passe à la suivante`
+          `trouvé le nom de la musique en moins de 3s (t'es un bot c'est pas possible), qui était "${title}".`
       )
     } else if (bonus === 1) {
       message.channel.send(
         `(+${bonus + POINTS_PER_TITLE}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de la musique en moins de 6s, qui était "${title}". On passe à la suivante`
+          `trouvé le nom de la musique en moins de 6s, qui était "${title}".`
       )
     } else {
       message.channel.send(
-        `(+1pts) pour ${player.displayName}, qui ` +
-          `a trouvé le nom de la musique, qui était "${title}". On passe à la suivante`
+        `(+${POINTS_PER_TITLE}pts) pour ${player.displayName}, qui ` +
+          `a trouvé le nom de la musique, qui était "${title}".`
       )
     }
   }

@@ -49,7 +49,7 @@ export class Blindtest extends events.EventEmitter {
   private readonly _limit: number = 0
   private readonly _categories: string[] = []
   private _timestamp = Date.now()
-  private _results: Map<YouTubeURL, Map<DiscordUserID, FoundType>> = new Map()
+  private _results: Map<YouTubeURL, FoundType> = new Map()
 
   timeout: NodeJS.Timeout | null = null
 
@@ -118,19 +118,17 @@ export class Blindtest extends events.EventEmitter {
       }
       this.queue = songs.slice(0, this._limit > 0 ? this._limit : songs.length)
       this.queue.forEach(song => {
-        const users = new Map<DiscordUserID, FoundType>()
-        this.players.forEach(player => {
-          users.set(player.id, { foundArtist: false, foundTitle: false })
-        })
-        this._results.set(song.url, users)
+        this._results.set(song.url, { foundTitle: false, foundArtist: false })
       })
     })
   }
 
   @action
-  public nextSong(): void {
+  public nextSong(): boolean {
     const [, ...items] = this.queue
     this.queue = [...items]
+
+    return this.queue.length > 0
   }
 
   @action
@@ -171,6 +169,9 @@ export class Blindtest extends events.EventEmitter {
     if (!player || !this.currentSong)
       return { foundArtist: false, foundTitle: false }
     if (this.currentSong && !message.author.bot && !message.partial) {
+      if (!this.currentSong.artist) {
+        this._results.get(this.currentSong.url)!.foundArtist = true
+      }
       if (
         this.currentSong.artist &&
         message.content
@@ -179,25 +180,22 @@ export class Blindtest extends events.EventEmitter {
       ) {
         if (
           this._results.has(this.currentSong.url) &&
-          this._results.get(this.currentSong.url)!.has(player.id)
+          !this._results.get(this.currentSong.url)!.foundArtist
         ) {
           // Nobody have found the artist yet
-          if (
-            Array.from(this._results.get(this.currentSong.url)!.values()).every(
-              r => !r.foundArtist
-            )
-          ) {
-            player.addPoints(POINTS_PER_ARTIST)
-            this.emit(
-              'on-artist-found',
-              this.currentSong.artist,
-              player,
-              message
-            )
-          }
-          this._results
-            .get(this.currentSong.url)!
-            .get(player.id)!.foundArtist = true
+          const bonusPoints = this.computeBonusPoint(
+            Date.now() - this._timestamp
+          )
+          player.addPoints(POINTS_PER_ARTIST + bonusPoints)
+          this.emit(
+            'on-artist-found',
+            this.currentSong.artist,
+            player,
+            message,
+            bonusPoints
+          )
+
+          this._results.get(this.currentSong.url)!.foundArtist = true
         }
       }
       if (
@@ -207,33 +205,26 @@ export class Blindtest extends events.EventEmitter {
       ) {
         if (
           this._results.has(this.currentSong.url) &&
-          this._results.get(this.currentSong.url)!.has(player.id)
+          !this._results.get(this.currentSong.url)!.foundTitle
         ) {
           // Nobody have found the title yet
-          if (
-            Array.from(this._results.get(this.currentSong.url)!.values()).every(
-              r => !r.foundTitle
-            )
-          ) {
-            const bonusPoints = this.computeBonusPoint(
-              Date.now() - this._timestamp
-            )
-            player.addPoints(POINTS_PER_TITLE + bonusPoints)
-            this.emit(
-              'on-title-found',
-              this.currentSong.title,
-              player,
-              message,
-              bonusPoints
-            )
-          }
-          this._results
-            .get(this.currentSong.url)!
-            .get(player.id)!.foundTitle = true
+          const bonusPoints = this.computeBonusPoint(
+            Date.now() - this._timestamp
+          )
+          player.addPoints(POINTS_PER_TITLE + bonusPoints)
+          this.emit(
+            'on-title-found',
+            this.currentSong.title,
+            player,
+            message,
+            bonusPoints
+          )
+
+          this._results.get(this.currentSong.url)!.foundTitle = true
         }
       }
 
-      return this._results.get(this.currentSong.url)!.get(player.id)!
+      return this._results.get(this.currentSong.url)!
     }
 
     return { foundArtist: false, foundTitle: false }
@@ -269,7 +260,12 @@ type EventsMap = {
   'no-player': () => void
   'new-owner-request': (newOwner: Player) => void
   'max-duration-exceeded': (currentSong: Song) => void
-  'on-artist-found': (artist: string, player: Player, message: Message) => void
+  'on-artist-found': (
+    artist: string,
+    player: Player,
+    message: Message,
+    bonus: Bonus
+  ) => void
   'on-title-found': (
     title: string,
     player: Player,
