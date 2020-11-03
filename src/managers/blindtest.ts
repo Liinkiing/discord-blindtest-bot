@@ -90,7 +90,7 @@ export class BlindtestManager extends BaseManager {
           message.channel.send(
             `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
           )
-          await wait(PAUSE_DURATION)
+          await this.blindtest.wait(PAUSE_DURATION)
         }
         this.blindtest.nextSong()
       }
@@ -194,7 +194,7 @@ export class BlindtestManager extends BaseManager {
         this._channel.send(
           `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
         )
-        await wait(PAUSE_DURATION)
+        await this.blindtest.wait(PAUSE_DURATION)
       }
       this.blindtest.nextSong()
     }

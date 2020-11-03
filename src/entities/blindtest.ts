@@ -26,6 +26,7 @@ export type Bonus = 0 | 1 | 3
 
 export enum State {
   Pending,
+  Waiting,
   Running,
 }
 
@@ -95,7 +96,11 @@ export class Blindtest extends events.EventEmitter {
     this._timestamp = Date.now()
     const oldCurrentSong = this.currentSong
     this.timeout = setInterval(() => {
-      if (oldCurrentSong && oldCurrentSong === this.currentSong) {
+      if (
+        this.state === State.Running &&
+        oldCurrentSong &&
+        oldCurrentSong === this.currentSong
+      ) {
         this.emit('max-duration-exceeded', oldCurrentSong)
       }
     }, MAX_DURATION)
@@ -137,6 +142,7 @@ export class Blindtest extends events.EventEmitter {
 
   @action
   public nextSong(): void {
+    this.state = State.Running
     const [, ...items] = this.queue
     this.queue = [...items]
   }
@@ -162,6 +168,11 @@ export class Blindtest extends events.EventEmitter {
     }
 
     return this
+  }
+
+  @action public wait(ms: number): Promise<unknown> {
+    this.state = State.Waiting
+    return wait(ms)
   }
 
   @action
