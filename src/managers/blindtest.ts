@@ -20,6 +20,7 @@ import {
   TextChannel,
   VoiceConnection,
 } from 'discord.js'
+import { wait } from '~/utils/promise'
 
 type Channel = TextChannel | NewsChannel | DMChannel
 
@@ -73,7 +74,7 @@ export class BlindtestManager extends BaseManager {
     }
   }
 
-  private onMessage = (message: Message): void => {
+  private onMessage = async (message: Message): Promise<void> => {
     if (message.author.bot || message.partial || !message.member) return
     if (
       this.blindtest &&
@@ -85,9 +86,12 @@ export class BlindtestManager extends BaseManager {
         if (this._streamDispatcher) {
           this._streamDispatcher.pause(true)
         }
-        message.channel.send(
-          `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
-        )
+        if (this.blindtest.hasNextSong) {
+          message.channel.send(
+            `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+          )
+          await wait(PAUSE_DURATION)
+        }
         this.blindtest.nextSong()
       }
     }
@@ -99,7 +103,7 @@ export class BlindtestManager extends BaseManager {
         this._channel.send(
           'Blindtest terminé, merci les kheys, voici les points'
         )
-        this._channel.send(this.blindtest.printScores())
+        this._channel.send(this.blindtest.scores)
       }
       this.endBlindtest()
     }
@@ -174,7 +178,7 @@ export class BlindtestManager extends BaseManager {
     }
   }
 
-  private onMaxDurationExceeded = (currentSong: Song): void => {
+  private onMaxDurationExceeded = async (currentSong: Song): Promise<void> => {
     if (this._channel && this.blindtest) {
       if (this._streamDispatcher) {
         this._streamDispatcher.pause(true)
@@ -186,9 +190,12 @@ export class BlindtestManager extends BaseManager {
           currentSong.artists ? `, par ${currentSong.artists.join(', ')}` : ''
         }`
       )
-      this._channel.send(
-        `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
-      )
+      if (this.blindtest.hasNextSong) {
+        this._channel.send(
+          `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+        )
+        await wait(PAUSE_DURATION)
+      }
       this.blindtest.nextSong()
     }
   }
@@ -209,6 +216,7 @@ export class BlindtestManager extends BaseManager {
   private removeListeners(): void {
     if (this.blindtest) {
       this.blindtest.removeAllListeners()
+      this.bot.client.off('message', this.onMessage)
     }
   }
 }

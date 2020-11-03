@@ -23,6 +23,7 @@ export class BlindtestCommand extends BaseCommand {
     const [option] = args
     const argv = yargs(args)
       .option('limit', { alias: 'l', boolean: false, number: true, default: 0 })
+      .option('skipArtists', { alias: 's', boolean: true, default: false })
       .option('categories', {
         alias: 'c',
         array: true,
@@ -145,7 +146,11 @@ export class BlindtestCommand extends BaseCommand {
 
   private handleCreate(
     { bot, message }: Command,
-    { limit, categories }: { categories: string[]; limit: number }
+    {
+      limit,
+      categories,
+      skipArtists,
+    }: { categories: string[]; limit: number; skipArtists: boolean }
   ) {
     if (bot.blindtestManager.blindtest) {
       message.reply(
@@ -156,7 +161,7 @@ export class BlindtestCommand extends BaseCommand {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
           message.channel,
-          { limit, categories }
+          { limit, categories, skipArtists }
         )
         message.reply(
           `Le blindtest a bien été créé.${
@@ -167,6 +172,10 @@ export class BlindtestCommand extends BaseCommand {
             categories.length > 0
               ? ' Seule les musiques appartenant aux catégories suivantes seront disponibles : ' +
                 categories.join(', ')
+              : ''
+          }${
+            skipArtists
+              ? '. De plus, les artistes ne seront pas pris en compte.'
               : ''
           }`
         )

@@ -39,6 +39,7 @@ type YouTubeURL = string
 export type BlindtestOptions = {
   limit: number
   categories: string[]
+  skipArtists?: boolean
 }
 
 export const PAUSE_DURATION = 5000
@@ -50,6 +51,7 @@ export class Blindtest extends events.EventEmitter {
   @observable public queue: Song[] = []
 
   private readonly _limit: number = 0
+  private readonly _skipArtists: boolean = false
   private readonly _categories: string[] = []
   private _timestamp = Date.now()
   private _results: Map<YouTubeURL, FoundType> = new Map()
@@ -60,6 +62,7 @@ export class Blindtest extends events.EventEmitter {
     super()
     this._limit = options.limit
     this._categories = options.categories
+    this._skipArtists = options.skipArtists ?? false
     makeObservable(this)
     autorun(() => {
       if (this.players.length === 0) {
@@ -127,16 +130,15 @@ export class Blindtest extends events.EventEmitter {
     })
   }
 
+  @computed
+  get hasNextSong(): boolean {
+    return this.queue.length > 1
+  }
+
   @action
-  public async nextSong(): Promise<boolean> {
-    await wait(PAUSE_DURATION)
-
-    return runInAction(() => {
-      const [, ...items] = this.queue
-      this.queue = [...items]
-
-      return this.queue.length > 0
-    })
+  public nextSong(): void {
+    const [, ...items] = this.queue
+    this.queue = [...items]
   }
 
   @action
@@ -177,7 +179,7 @@ export class Blindtest extends events.EventEmitter {
     if (!player || !this.currentSong)
       return { foundArtist: false, foundTitle: false }
     if (this.currentSong && !message.author.bot && !message.partial) {
-      if (this.currentSong.artists.length === 0) {
+      if (this.currentSong.artists.length === 0 || this._skipArtists) {
         this._results.get(this.currentSong.url)!.foundArtist = true
       }
       if (
@@ -238,8 +240,9 @@ export class Blindtest extends events.EventEmitter {
     return { foundArtist: false, foundTitle: false }
   }
 
-  public printScores(): string {
-    return this.players
+  @computed
+  get scores(): string {
+    return [...this.players]
       .sort((a, b) => b.points - a.points)
       .map(
         p => `
