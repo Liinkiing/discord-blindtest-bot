@@ -1,6 +1,8 @@
 import yargs from 'yargs'
+import { uniq, flatten } from 'lodash'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
+import AirtableApiClient from '~/services/airtable-api'
 
 type Options =
   | 'start'
@@ -10,6 +12,7 @@ type Options =
   | 'delete'
   | 'leave'
   | 'stop'
+  | 'categories'
 
 export class BlindtestCommand extends BaseCommand {
   _name = 'bt'
@@ -30,6 +33,9 @@ export class BlindtestCommand extends BaseCommand {
         default: [],
       }).argv
     switch (option) {
+      case 'categories':
+        this.handleCategories({ bot, args, message, name })
+        break
       case 'start':
         this.handleStart({ bot, args, message, name })
         break
@@ -52,6 +58,18 @@ export class BlindtestCommand extends BaseCommand {
         this.handleStop({ bot, args, message, name })
         break
     }
+  }
+
+  private async handleCategories({ message }: Command) {
+    const response = await AirtableApiClient.songs()
+      .select({
+        fields: ['Genres'],
+      })
+      .all()
+    const categories = uniq(flatten(response.map(r => r.get('Genres'))))
+    message.reply(
+      `Voici la liste des catégories disponibles : ${categories.join(' | ')}`
+    )
   }
 
   private handleStart({ bot, message }: Command) {
