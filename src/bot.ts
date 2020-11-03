@@ -44,13 +44,7 @@ export class Bot {
 
   private initCommands(): void {
     Logger.info('Initializing commands')
-    this._commands.push(
-      ...[
-        new Commands.PingCommand(this),
-        new Commands.AudioCommand(this),
-        new Commands.BlindtestCommand(this),
-      ]
-    )
+    this._commands.push(...[new Commands.BlindtestCommand(this)])
   }
 
   private initManagers(): void {

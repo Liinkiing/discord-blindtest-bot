@@ -3,6 +3,8 @@ import { uniq, flatten } from 'lodash'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 import AirtableApiClient from '~/services/airtable-api'
+import { t } from '~/translations'
+import { autoProvideEmojis, getEmoji } from '~/utils/emojis'
 
 type Options =
   | 'start'
@@ -68,7 +70,7 @@ export class BlindtestCommand extends BaseCommand {
       .all()
     const categories = uniq(flatten(response.map(r => r.get('Genres'))))
     message.reply(
-      `Voici la liste des catégories disponibles : ${categories.join(' | ')}`
+      t('blindtest.commands.categories', { categories: categories.join(' | ') })
     )
   }
 
@@ -77,7 +79,7 @@ export class BlindtestCommand extends BaseCommand {
       bot.blindtestManager.blindtest &&
       bot.blindtestManager.blindtest.isRunning
     ) {
-      message.reply(`Un blindtest est déjà en cours!`)
+      message.reply(t('blindtest.already-started'))
     } else if (
       bot.blindtestManager.blindtest &&
       message.author.id === bot.blindtestManager.blindtest.owner.id
@@ -85,7 +87,9 @@ export class BlindtestCommand extends BaseCommand {
       bot.blindtestManager.startBlindtest(message)
     } else if (bot.blindtestManager.blindtest) {
       message.reply(
-        `Seul le créateur du blindtest (${bot.blindtestManager.blindtest.owner.displayName}) peut démarrer le blindtest!`
+        t('blindtest.only-owner-can-start', {
+          owner: bot.blindtestManager.blindtest.owner.displayName,
+        })
       )
     }
   }
@@ -97,7 +101,11 @@ export class BlindtestCommand extends BaseCommand {
       message.author.id === bot.blindtestManager.blindtest.owner.id
     ) {
       bot.blindtestManager.blindtest.emit('end')
-      message.reply(`Blindtest supprimé`)
+      message.reply(
+        t('blindtest.deleted', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
     }
   }
 
@@ -106,43 +114,54 @@ export class BlindtestCommand extends BaseCommand {
       !bot.blindtestManager.blindtest ||
       !bot.blindtestManager.blindtest.isRunning
     ) {
-      message.reply(`Aucun blindtest n'est en cours!`)
+      message.reply(t('blindtest.no-pending-blindtests'))
     } else if (
       bot.blindtestManager.blindtest &&
       message.author.id === bot.blindtestManager.blindtest.owner.id
     ) {
-      message.reply("J'arrête le blindtest.")
+      message.reply(
+        t('blindtest.stopping', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
       bot.blindtestManager.blindtest?.emit('end')
     } else if (bot.blindtestManager.blindtest) {
       message.reply(
-        `Seul le créateur du blindtest (${bot.blindtestManager.blindtest.owner.displayName}) peut stopper le blindtest!`
+        t('blindtest.only-owner-can-stop', {
+          ...autoProvideEmojis(message.guild),
+          owner: bot.blindtestManager.blindtest.owner.displayName,
+        })
       )
     } else {
-      message.reply(
-        `Y a aucun blindtest en cours mon reuf. '!blindtest start' pour en créer un.`
-      )
+      message.reply(t('blindtest.no-pending-blindtests'))
     }
   }
 
   private handleJoin({ bot, message }: Command) {
     if (!bot.blindtestManager.blindtest) {
-      message.reply(
-        "Aucun blindtest n'est en cours. '!blindtest create' pour en créer un."
-      )
+      message.reply(t('blindtest.no-pending-blindtests'))
     } else if (
       bot.blindtestManager.blindtest &&
       message.member &&
       bot.blindtestManager.blindtest.hasMemberJoined(message.member)
     ) {
-      message.reply('BAKAAAA BAKA BAKA tu es dans le blindtest')
+      message.reply(
+        t('blindtest.already-joined', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
     } else if (
       bot.blindtestManager.blindtest &&
       message.member &&
       bot.blindtestManager.blindtest.isRunning
     ) {
-      message.reply('Tu ne peux pas rejoindre un blindtest qui a déjà commencé')
+      message.reply(
+        t('blindtest.cant-join-already-started', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
     } else {
-      message.reply('Bonsoir grand étalon, bienvenue dans le blindtest')
+      message.reply(t('blindtest.user-joined'))
       if (message.member) {
         bot.blindtestManager.blindtest.addPlayer(new Player(message.member))
       }
@@ -156,9 +175,13 @@ export class BlindtestCommand extends BaseCommand {
       bot.blindtestManager.blindtest.hasMemberJoined(message.member)
     ) {
       bot.blindtestManager.blindtest.removePlayer(message.member)
-      message.reply("Tu ne fais plus parti du blindtest :'(")
+      message.reply(t('blindtest.user-left'))
     } else {
-      message.reply("BAKA BAKAAA BAKAAA tu n'es dans aucun blindtest")
+      message.reply(
+        t('blindtest.already-joined', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
     }
   }
 
@@ -172,7 +195,9 @@ export class BlindtestCommand extends BaseCommand {
   ) {
     if (bot.blindtestManager.blindtest) {
       message.reply(
-        `Un blindtest créé par ${bot.blindtestManager.blindtest.owner.displayName} est déjà en cours`
+        t('blindtest.already-created-by', {
+          user: bot.blindtestManager.blindtest.owner.displayName,
+        })
       )
     } else {
       if (message.member) {
@@ -182,20 +207,15 @@ export class BlindtestCommand extends BaseCommand {
           { limit, categories, skipArtists }
         )
         message.reply(
-          `Le blindtest a bien été créé.${
-            limit > 0
-              ? ' Une limite de ' + limit + ' musiques a été définie.'
-              : ''
-          }${
+          `${t('blindtest.create-success')} ${
+            limit > 0 ? t('blindtest.create-limit', { limit }) : ''
+          } ${
             categories.length > 0
-              ? ' Seule les musiques appartenant aux catégories suivantes seront disponibles : ' +
-                categories.join(', ')
+              ? t('blindtest.create-category', {
+                  categories: categories.join(', '),
+                })
               : ''
-          }${
-            skipArtists
-              ? '. De plus, les artistes ne seront pas pris en compte.'
-              : ''
-          }`
+          } ${skipArtists ? t('blindtest.create-skip-artist') : ''}`
         )
       }
     }
@@ -203,7 +223,11 @@ export class BlindtestCommand extends BaseCommand {
 
   private handlePlayers({ bot, message }: Command) {
     if (bot.blindtestManager.blindtest) {
-      message.reply('Liste des joueurs : ')
+      message.reply(
+        t('blindtest.commands.players', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
       bot.blindtestManager.blindtest.players.forEach(player => {
         message.reply(player.displayName)
       })

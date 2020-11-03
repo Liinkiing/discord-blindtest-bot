@@ -17,6 +17,7 @@ import AirtableApiClient from '~/services/airtable-api'
 import { SongMapper } from '~/mappers/song'
 import { normalize } from '~/utils/string'
 import { wait } from '~/utils/promise'
+import { t } from '~/translations'
 
 export const MAX_DURATION = 20 * 1000
 export const POINTS_PER_ARTIST = 1
@@ -44,6 +45,17 @@ export type BlindtestOptions = {
 }
 
 export const PAUSE_DURATION = 5000
+
+export const computeBonusSentence = (bonus: Bonus): string => {
+  switch (bonus) {
+    case 0:
+      return ''
+    case 1:
+      return t('blindtest.bonus.fast')
+    case 3:
+      return t('blindtest.bonus.sonic')
+  }
+}
 
 export class Blindtest extends events.EventEmitter {
   @observable public state: State = State.Pending

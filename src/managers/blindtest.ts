@@ -3,6 +3,7 @@ import {
   Blindtest,
   BlindtestOptions,
   Bonus,
+  computeBonusSentence,
   PAUSE_DURATION,
   POINTS_PER_ARTIST,
   POINTS_PER_TITLE,
@@ -21,6 +22,7 @@ import {
   VoiceConnection,
 } from 'discord.js'
 import { wait } from '~/utils/promise'
+import { t } from '~/translations'
 
 type Channel = TextChannel | NewsChannel | DMChannel
 
@@ -47,13 +49,11 @@ export class BlindtestManager extends BaseManager {
 
   public async startBlindtest(message: Message) {
     if (this.blindtest && message.member?.voice.channel) {
-      message.channel.send('@everyone' + ' le blindtest va commencer!')
+      message.channel.send('@everyone ' + t('blindtest.will-start'))
       this._connection = await message.member.voice.channel.join()
       await this.blindtest.start()
     } else {
-      message.channel.send(
-        'Wsh mon reuf, tu dois être dans un vocal pour lancer un blindtest'
-      )
+      message.channel.send(t('blindtest.needs-vocal-channel'))
     }
   }
 
@@ -88,7 +88,7 @@ export class BlindtestManager extends BaseManager {
         }
         if (this.blindtest.hasNextSong) {
           message.channel.send(
-            `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+            t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
           )
           await this.blindtest.wait(PAUSE_DURATION)
         }
@@ -100,9 +100,7 @@ export class BlindtestManager extends BaseManager {
   private onEnd = (): void => {
     if (this._channel && this.blindtest) {
       if (this.blindtest.state === State.Running) {
-        this._channel.send(
-          'Blindtest terminé, merci les kheys, voici les points'
-        )
+        this._channel.send(t('blindtest.finished'))
         this._channel.send(this.blindtest.scores)
       }
       this.endBlindtest()
@@ -115,30 +113,12 @@ export class BlindtestManager extends BaseManager {
     message: Message,
     bonus: Bonus
   ): void => {
-    if (bonus === 3) {
-      message.channel.send(
-        `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
-          player.displayName
-        } pour avoir ` +
-          `trouvé le nom de l'artiste en moins de 3s (t'es un bot c'est pas possible), qui était "${artists.join(
-            ', '
-          )}".`
-      )
-    } else if (bonus === 1) {
-      message.channel.send(
-        `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
-          player.displayName
-        } pour avoir ` +
-          `trouvé le nom de l'artiste en moins de 6s, qui était "${artists.join(
-            ', '
-          )}".`
-      )
-    } else {
-      message.channel.send(
-        `(+${POINTS_PER_ARTIST}pts) pour ${player.displayName}, qui ` +
-          `a trouvé le nom de l'artiste, qui était "${artists.join(', ')}".`
-      )
-    }
+    const pts = bonus + POINTS_PER_ARTIST
+    message.channel.send(
+      `${t('blindtest.on-artist-found', { pts })} ${
+        bonus > 0 ? computeBonusSentence(bonus) : ''
+      }`
+    )
   }
 
   private onTitleFound = (
@@ -147,33 +127,17 @@ export class BlindtestManager extends BaseManager {
     message: Message,
     bonus: Bonus
   ): void => {
-    if (bonus === 3) {
-      message.channel.send(
-        `(+${bonus + POINTS_PER_TITLE}pts) pour ${
-          player.displayName
-        } pour avoir ` +
-          `trouvé le nom de la musique en moins de 3s (t'es un bot c'est pas possible), qui était "${title}".`
-      )
-    } else if (bonus === 1) {
-      message.channel.send(
-        `(+${bonus + POINTS_PER_TITLE}pts) pour ${
-          player.displayName
-        } pour avoir ` +
-          `trouvé le nom de la musique en moins de 6s, qui était "${title}".`
-      )
-    } else {
-      message.channel.send(
-        `(+${POINTS_PER_TITLE}pts) pour ${player.displayName}, qui ` +
-          `a trouvé le nom de la musique, qui était "${title}".`
-      )
-    }
+    const pts = bonus + POINTS_PER_TITLE
+    message.channel.send(
+      `${t('blindtest.on-music-found', { pts })} ${
+        bonus > 0 ? computeBonusSentence(bonus) : ''
+      }`
+    )
   }
 
   private onNewOwnerRequest = (owner: Player): void => {
     if (this._channel && this.blindtest) {
-      this._channel.send(
-        `Étant donné que le créateur du blindtest est parti (sale lâche), @${owner.displayName} va reprendre la relève. C'est à toi désormais que relève la dure responsabilité de démarrer le blindtest`
-      )
+      this._channel.send(t('blindtest.owner-left', { user: owner.displayName }))
       this.blindtest.setOwner(owner)
     }
   }
@@ -184,15 +148,17 @@ export class BlindtestManager extends BaseManager {
         this._streamDispatcher.pause(true)
       }
       this._channel.send(
-        `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${
-          currentSong.title
-        }"${
-          currentSong.artists ? `, par ${currentSong.artists.join(', ')}` : ''
+        `${t('blindtest.max-duration-exceeded', { song: currentSong.title })}${
+          currentSong.artists.length > 0
+            ? t('blindtest.max-duration-exceeded-artists', {
+                artists: currentSong.artists,
+              })
+            : ''
         }`
       )
       if (this.blindtest.hasNextSong) {
         this._channel.send(
-          `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+          t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
         )
         await this.blindtest.wait(PAUSE_DURATION)
       }
