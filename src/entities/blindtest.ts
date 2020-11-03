@@ -16,6 +16,7 @@ import { Song } from '~/entities/song'
 import AirtableApiClient from '~/services/airtable-api'
 import { SongMapper } from '~/mappers/song'
 import { normalize } from '~/utils/string'
+import { wait } from '~/utils/promise'
 
 export const MAX_DURATION = 20 * 1000
 export const POINTS_PER_ARTIST = 1
@@ -39,6 +40,8 @@ export type BlindtestOptions = {
   limit: number
   categories: string[]
 }
+
+export const PAUSE_DURATION = 5000
 
 export class Blindtest extends events.EventEmitter {
   @observable public state: State = State.Pending
@@ -91,7 +94,6 @@ export class Blindtest extends events.EventEmitter {
     this.timeout = setInterval(() => {
       if (oldCurrentSong && oldCurrentSong === this.currentSong) {
         this.emit('max-duration-exceeded', oldCurrentSong)
-        this.nextSong()
       }
     }, MAX_DURATION)
   }
@@ -126,11 +128,15 @@ export class Blindtest extends events.EventEmitter {
   }
 
   @action
-  public nextSong(): boolean {
-    const [, ...items] = this.queue
-    this.queue = [...items]
+  public async nextSong(): Promise<boolean> {
+    await wait(PAUSE_DURATION)
 
-    return this.queue.length > 0
+    return runInAction(() => {
+      const [, ...items] = this.queue
+      this.queue = [...items]
+
+      return this.queue.length > 0
+    })
   }
 
   @action

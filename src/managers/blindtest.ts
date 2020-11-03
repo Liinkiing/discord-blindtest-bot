@@ -3,6 +3,7 @@ import {
   Blindtest,
   BlindtestOptions,
   Bonus,
+  PAUSE_DURATION,
   POINTS_PER_ARTIST,
   POINTS_PER_TITLE,
   State,
@@ -19,15 +20,13 @@ import {
   TextChannel,
   VoiceConnection,
 } from 'discord.js'
-import ytdl from 'ytdl-core'
-import YTDownloader from '~/services/yt-downloader'
 
 type Channel = TextChannel | NewsChannel | DMChannel
 
 export class BlindtestManager extends BaseManager {
   public blindtest: Blindtest | null = null
   private _channel: Channel | null = null
-  private _streamDsipatcher: StreamDispatcher | null = null
+  private _streamDispatcher: StreamDispatcher | null = null
   private _connection: VoiceConnection | null = null
 
   constructor(protected bot: Bot) {
@@ -62,17 +61,14 @@ export class BlindtestManager extends BaseManager {
     this.blindtest = null
     if (this._connection) {
       this._connection.disconnect()
-      this._streamDsipatcher = null
+      this._streamDispatcher = null
     }
     Logger.success('Deleted blindtest')
   }
 
   private onSongChanged = async (song: Song) => {
     if (this._connection) {
-      if (this._streamDsipatcher) {
-        this._streamDsipatcher.pause(true)
-      }
-      this._streamDsipatcher = this._connection.play(song.url)
+      this._streamDispatcher = this._connection.play(song.url)
       this.blindtest?.createTimeout()
     }
   }
@@ -85,8 +81,14 @@ export class BlindtestManager extends BaseManager {
       this.blindtest.hasMemberJoined(message.member)
     ) {
       const { foundTitle, foundArtist } = this.blindtest.guessSong(message)
-      if (foundTitle && foundArtist && this.blindtest.nextSong()) {
-        message.channel.send('===== LANCEMENT DE LA PROCHAINE MUSIQUE =====')
+      if (foundTitle && foundArtist) {
+        if (this._streamDispatcher) {
+          this._streamDispatcher.pause(true)
+        }
+        message.channel.send(
+          `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+        )
+        this.blindtest.nextSong()
       }
     }
   }
@@ -173,7 +175,10 @@ export class BlindtestManager extends BaseManager {
   }
 
   private onMaxDurationExceeded = (currentSong: Song): void => {
-    if (this._channel) {
+    if (this._channel && this.blindtest) {
+      if (this._streamDispatcher) {
+        this._streamDispatcher.pause(true)
+      }
       this._channel.send(
         `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${
           currentSong.title
@@ -181,6 +186,10 @@ export class BlindtestManager extends BaseManager {
           currentSong.artists ? `, par ${currentSong.artists.join(', ')}` : ''
         }`
       )
+      this._channel.send(
+        `Prochaine musique dans ${PAUSE_DURATION / 1000} secondes...`
+      )
+      this.blindtest.nextSong()
     }
   }
 
