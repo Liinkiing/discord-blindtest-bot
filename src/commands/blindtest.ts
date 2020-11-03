@@ -88,6 +88,7 @@ export class BlindtestCommand extends BaseCommand {
     } else if (bot.blindtestManager.blindtest) {
       message.reply(
         t('blindtest.only-owner-can-start', {
+          ...autoProvideEmojis(message.guild),
           owner: bot.blindtestManager.blindtest.owner.displayName,
         })
       )
@@ -111,11 +112,6 @@ export class BlindtestCommand extends BaseCommand {
 
   private handleStop({ bot, message }: Command) {
     if (
-      !bot.blindtestManager.blindtest ||
-      !bot.blindtestManager.blindtest.isRunning
-    ) {
-      message.reply(t('blindtest.no-pending-blindtests'))
-    } else if (
       bot.blindtestManager.blindtest &&
       message.author.id === bot.blindtestManager.blindtest.owner.id
     ) {
@@ -161,7 +157,9 @@ export class BlindtestCommand extends BaseCommand {
         })
       )
     } else {
-      message.reply(t('blindtest.user-joined'))
+      message.reply(
+        t('blindtest.user-joined', { ...autoProvideEmojis(message.guild) })
+      )
       if (message.member) {
         bot.blindtestManager.blindtest.addPlayer(new Player(message.member))
       }

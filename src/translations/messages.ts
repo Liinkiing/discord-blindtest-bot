@@ -1,6 +1,7 @@
 import { Locale } from '~/@types/i18n'
 
 const messageIds = [
+  'global.separator',
   'blindtest.stopping',
   'blindtest.user-left',
   'blindtest.cant-join-already-started',
@@ -29,6 +30,7 @@ const messageIds = [
   'blindtest.create-limit',
   'blindtest.create-category',
   'blindtest.create-skip-artist',
+  'listen-on-spotify',
 ] as const
 
 export type MessageIds = typeof messageIds[number]
@@ -39,6 +41,8 @@ const messages = new Map<Locale, MessageMap>()
 
 const french: MessageMap = new Map()
 french
+  .set('global.separator', '===================================')
+  .set('listen-on-spotify', 'Écouter sur Spotify')
   .set(
     'blindtest.commands.players',
     ':typescript: Liste des joueurs :typescript:'
@@ -46,13 +50,13 @@ french
   .set('blindtest.user-left', "Ce n'est qu'un aurevoir... 😥")
   .set(
     'blindtest.user-joined',
-    'Bienvenue à toi jeune entrepreneur ! :elizabeth:'
+    "Bienvenue à toi jeune entrepreneur(e) ! {elizabeth} (me fait pas de remarque sur l'écriture inclusive {pole_emploi})"
   )
   .set(
     'blindtest.cant-join-already-started',
     ':oopsie: Je vois que tes AMIS ne sont pas réellement tes AMIS car ils jouent sans toi... Dommage car tu ne peux pas rejoindre un blindtest en cours, réessaie une prochaine fois :hap:'
   )
-  .set('blindtest.stopping', ':rem: Fin du blindtest :rem:')
+  .set('blindtest.stopping', '{rem} Fin du blindtest')
   .set(
     'blindtest.already-joined',
     "BAKA BAKA BAKAAAAA {sulk} ! T'es déjà dans le blindtest, tu mérites des gifles"
@@ -78,7 +82,7 @@ french
   )
   .set(
     'blindtest.max-duration-exceeded',
-    'Le délai maximum a été atteint et personne n\'a trouvé {sulk} . La musique était "{song}"'
+    "Le délai maximum a été atteint et personne n'a trouvé {sulk}."
   )
   .set('blindtest.max-duration-exceeded-artists', ', par {artists}')
   .set(
@@ -87,7 +91,11 @@ french
   )
   .set(
     'blindtest.on-artist-found',
-    "(+{pts}pts) pour {user} pour avoir trouvé le nom de l'artiste."
+    "↗ *+{pts}pts* pour *{user}* pour avoir trouvé le nom de l'artiste."
+  )
+  .set(
+    'blindtest.on-music-found',
+    '↗ *+{pts}pts* pour *{user}* pour avoir trouvé le nom de la musique.'
   )
   .set('blindtest.bonus.fast', 'En moins de 6s en plus, pas mal')
   .set(
@@ -100,7 +108,7 @@ french
   )
   .set(
     'blindtest.next-song-within',
-    "La prochaine musique va démarrer d'ici {duration}s..."
+    "⏳ La prochaine musique va démarrer d'ici {duration}s... ⏳"
   )
   .set(
     'blindtest.needs-vocal-channel',

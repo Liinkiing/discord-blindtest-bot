@@ -263,11 +263,23 @@ export class Blindtest extends events.EventEmitter {
 
   @computed
   get scores(): string {
+    function getMedal(position: number) {
+      switch (position) {
+        case 0:
+          return '🥇 '
+        case 1:
+          return '🥈 '
+        case 2:
+          return '🥉 '
+        default:
+          return ''
+      }
+    }
     return [...this.players]
       .sort((a, b) => b.points - a.points)
       .map(
-        p => `
-${p.displayName} : ${p.points} pts`
+        (p, i) => `
+${getMedal(i)}${p.displayName} : ${p.points} pts`
       )
       .join('')
   }

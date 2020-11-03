@@ -21,8 +21,9 @@ import {
   TextChannel,
   VoiceConnection,
 } from 'discord.js'
-import { wait } from '~/utils/promise'
 import { t } from '~/translations'
+import { autoProvideEmojis } from '~/utils/emojis'
+import { SONG_INFO_EMBED } from '~/utils/embeds'
 
 type Channel = TextChannel | NewsChannel | DMChannel
 
@@ -53,7 +54,11 @@ export class BlindtestManager extends BaseManager {
       this._connection = await message.member.voice.channel.join()
       await this.blindtest.start()
     } else {
-      message.channel.send(t('blindtest.needs-vocal-channel'))
+      message.channel.send(
+        t('blindtest.needs-vocal-channel', {
+          ...autoProvideEmojis(message.guild),
+        })
+      )
     }
   }
 
@@ -87,9 +92,12 @@ export class BlindtestManager extends BaseManager {
           this._streamDispatcher.pause(true)
         }
         if (this.blindtest.hasNextSong) {
+          message.channel.send(SONG_INFO_EMBED(this.blindtest.currentSong!))
           message.channel.send(
             t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
           )
+          message.channel.send(t('global.separator'))
+          message.channel.send(this.blindtest.scores)
           await this.blindtest.wait(PAUSE_DURATION)
         }
         this.blindtest.nextSong()
@@ -115,9 +123,11 @@ export class BlindtestManager extends BaseManager {
   ): void => {
     const pts = bonus + POINTS_PER_ARTIST
     message.channel.send(
-      `${t('blindtest.on-artist-found', { pts })} ${
-        bonus > 0 ? computeBonusSentence(bonus) : ''
-      }`
+      `${t('blindtest.on-artist-found', {
+        pts,
+        user: player.displayName,
+        ...autoProvideEmojis(message.guild),
+      })} ${bonus > 0 ? computeBonusSentence(bonus) : ''}`
     )
   }
 
@@ -129,9 +139,11 @@ export class BlindtestManager extends BaseManager {
   ): void => {
     const pts = bonus + POINTS_PER_TITLE
     message.channel.send(
-      `${t('blindtest.on-music-found', { pts })} ${
-        bonus > 0 ? computeBonusSentence(bonus) : ''
-      }`
+      `${t('blindtest.on-music-found', {
+        ...autoProvideEmojis(message.guild),
+        pts,
+        user: player.displayName,
+      })} ${bonus > 0 ? computeBonusSentence(bonus) : ''}`
     )
   }
 
@@ -148,18 +160,18 @@ export class BlindtestManager extends BaseManager {
         this._streamDispatcher.pause(true)
       }
       this._channel.send(
-        `${t('blindtest.max-duration-exceeded', { song: currentSong.title })}${
-          currentSong.artists.length > 0
-            ? t('blindtest.max-duration-exceeded-artists', {
-                artists: currentSong.artists,
-              })
-            : ''
-        }`
+        `${t('blindtest.max-duration-exceeded', {
+          song: currentSong.title,
+          ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
+        })}`
       )
+      this._channel.send(SONG_INFO_EMBED(currentSong))
       if (this.blindtest.hasNextSong) {
         this._channel.send(
           t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
         )
+        this._channel.send(t('global.separator'))
+        this._channel.send(this.blindtest.scores)
         await this.blindtest.wait(PAUSE_DURATION)
       }
       this.blindtest.nextSong()
