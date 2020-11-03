@@ -1,0 +1,10 @@
+# local .env* files
+.env.local
+.env.*.local
+
+/dist
+/node_modules
+/.idea
+
+/spotify/tracks.ts
+yarn-error.log

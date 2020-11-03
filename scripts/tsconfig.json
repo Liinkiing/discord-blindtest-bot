@@ -1,0 +1,25 @@
+{
+  "exclude": ["node_modules", "rollup.config.js"],
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["dom", "es6"],
+    "declaration": true,
+    "allowJs": true,
+    "rootDir": "../",
+    "strict": true,
+    "noImplicitAny": true,
+    "baseUrl": "..",
+    "paths": {
+      "~/*": ["scripts/*"]
+    },
+    "useDefineForClassFields": true,
+    "types": ["node"],
+    "typeRoots": ["node_modules/@types/*", "src/@types/*"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

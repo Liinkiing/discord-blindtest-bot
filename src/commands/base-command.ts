@@ -18,7 +18,10 @@ export abstract class BaseCommand {
     this.bot.client.on('message', async message => {
       if (message.author.bot || message.partial) return
       if (!message.content.startsWith(this._prefix)) return
-      const [name, ...args] = message.content.substring(1).split(' ')
+      const [name, ...args] = message.content
+        .substring(1)
+        .split(/("[^"]*"|'[^']*'|[\S]+)+/)
+        .filter(v => v !== '' && v !== ' ')
       if (name !== this._name) return
 
       await this.execute({

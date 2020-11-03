@@ -22,8 +22,8 @@ class AirtableApiClientApp {
 }
 
 const AirtableApiClient = new AirtableApiClientApp({
-  apiKey: process.env.AIRTABLE_API_KEY,
-  baseId: process.env.AIRTABLE_BASE_ID,
+  apiKey: process.env.AIRTABLE_API_KEY!,
+  baseId: process.env.AIRTABLE_BASE_ID!,
 })
 
 export default AirtableApiClient

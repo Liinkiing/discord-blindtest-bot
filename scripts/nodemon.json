@@ -1,0 +1,5 @@
+{
+  "watch": ["index.ts", "**.ts"],
+  "ignore": ["**.spec.ts"],
+  "exec": "ts-node -r pretty-error/start -r dotenv-flow/config --files ./index.ts"
+}

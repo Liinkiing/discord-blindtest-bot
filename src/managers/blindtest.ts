@@ -72,31 +72,7 @@ export class BlindtestManager extends BaseManager {
       if (this._streamDsipatcher) {
         this._streamDsipatcher.pause(true)
       }
-      let infos
-      try {
-        infos = await ytdl.getBasicInfo(song.url)
-      } catch (e) {
-        infos = null
-      }
-      if (
-        !infos ||
-        infos.player_response.playabilityStatus.status === 'UNPLAYABLE'
-      ) {
-        Logger.warn(
-          `Video ${song.url} is UNPLAYABLE or could not get informations. Skipping it.`
-        )
-        this.blindtest?.nextSong()
-      } else if (song.start === 0) {
-        const stream = ytdl(song.url, { filter: 'audioonly' })
-        this._streamDsipatcher = this._connection.play(stream)
-      } else {
-        this._streamDsipatcher = this._connection.play(
-          await YTDownloader.stream({
-            uri: song.url,
-            offset: song.start,
-          })
-        )
-      }
+      this._streamDsipatcher = this._connection.play(song.url)
       this.blindtest?.createTimeout()
     }
   }
@@ -127,8 +103,8 @@ export class BlindtestManager extends BaseManager {
     }
   }
 
-  private onArtistFound = (
-    artist: string,
+  private onArtistsFound = (
+    artists: string[],
     player: Player,
     message: Message,
     bonus: Bonus
@@ -138,19 +114,23 @@ export class BlindtestManager extends BaseManager {
         `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de l'artiste en moins de 3s (t'es un bot c'est pas possible), qui était "${artist}".`
+          `trouvé le nom de l'artiste en moins de 3s (t'es un bot c'est pas possible), qui était "${artists.join(
+            ', '
+          )}".`
       )
     } else if (bonus === 1) {
       message.channel.send(
         `(+${bonus + POINTS_PER_ARTIST}pts) pour ${
           player.displayName
         } pour avoir ` +
-          `trouvé le nom de l'artiste en moins de 6s, qui était "${artist}".`
+          `trouvé le nom de l'artiste en moins de 6s, qui était "${artists.join(
+            ', '
+          )}".`
       )
     } else {
       message.channel.send(
         `(+${POINTS_PER_ARTIST}pts) pour ${player.displayName}, qui ` +
-          `a trouvé le nom de l'artiste, qui était "${artist}".`
+          `a trouvé le nom de l'artiste, qui était "${artists.join(', ')}".`
       )
     }
   }
@@ -197,7 +177,9 @@ export class BlindtestManager extends BaseManager {
       this._channel.send(
         `Le délai maximum a été atteint et personne n'a trouvé :'(. La musique était "${
           currentSong.title
-        }"${currentSong.artist ? `, par ${currentSong.artist}` : ''}`
+        }"${
+          currentSong.artists ? `, par ${currentSong.artists.join(', ')}` : ''
+        }`
       )
     }
   }
@@ -209,7 +191,7 @@ export class BlindtestManager extends BaseManager {
       this.blindtest.on('no-player', this.endBlindtest)
       this.blindtest.on('max-duration-exceeded', this.onMaxDurationExceeded)
       this.blindtest.on('on-song-changed', this.onSongChanged)
-      this.blindtest.on('on-artist-found', this.onArtistFound)
+      this.blindtest.on('on-artists-found', this.onArtistsFound)
       this.blindtest.on('on-title-found', this.onTitleFound)
       this.bot.client.on('message', this.onMessage)
     }

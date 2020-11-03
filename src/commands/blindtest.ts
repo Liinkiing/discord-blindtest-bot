@@ -23,7 +23,11 @@ export class BlindtestCommand extends BaseCommand {
     const [option] = args
     const argv = yargs(args)
       .option('limit', { alias: 'l', boolean: false, number: true, default: 0 })
-      .option('categories', { alias: 'c', array: true, default: [] }).argv
+      .option('categories', {
+        alias: 'c',
+        array: true,
+        default: [],
+      }).argv
     switch (option) {
       case 'start':
         this.handleStart({ bot, args, message, name })

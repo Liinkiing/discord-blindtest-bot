@@ -11,11 +11,11 @@ import {
 } from 'mobx'
 import { Player } from '~/entities/player'
 import { GuildMember, Message } from 'discord.js'
-import { DiscordUserID } from '~/@types'
 import { Logger } from '~/services/logger'
 import { Song } from '~/entities/song'
 import AirtableApiClient from '~/services/airtable-api'
 import { SongMapper } from '~/mappers/song'
+import { normalize } from '~/utils/string'
 
 export const MAX_DURATION = 20 * 1000
 export const POINTS_PER_ARTIST = 1
@@ -113,7 +113,9 @@ export class Blindtest extends events.EventEmitter {
       let songs = shuffle(records.map(SongMapper.fromApi))
       if (this._categories.length > 0) {
         songs = songs.filter(s =>
-          s.categories.some(c => this._categories.includes(c))
+          s.genres.some(c =>
+            this._categories.map(normalize).includes(normalize(c))
+          )
         )
       }
       this.queue = songs.slice(0, this._limit > 0 ? this._limit : songs.length)
@@ -169,14 +171,16 @@ export class Blindtest extends events.EventEmitter {
     if (!player || !this.currentSong)
       return { foundArtist: false, foundTitle: false }
     if (this.currentSong && !message.author.bot && !message.partial) {
-      if (!this.currentSong.artist) {
+      if (this.currentSong.artists.length === 0) {
         this._results.get(this.currentSong.url)!.foundArtist = true
       }
       if (
-        this.currentSong.artist &&
-        message.content
-          .toLowerCase()
-          .includes(this.currentSong.artist.toLowerCase())
+        this.currentSong.artists.length > 0 &&
+        this.currentSong.artists
+          .map(normalize)
+          .some(artist =>
+            message.content.toLowerCase().includes(normalize(artist))
+          )
       ) {
         if (
           this._results.has(this.currentSong.url) &&
@@ -188,8 +192,8 @@ export class Blindtest extends events.EventEmitter {
           )
           player.addPoints(POINTS_PER_ARTIST + bonusPoints)
           this.emit(
-            'on-artist-found',
-            this.currentSong.artist,
+            'on-artists-found',
+            this.currentSong.artists,
             player,
             message,
             bonusPoints
@@ -199,9 +203,7 @@ export class Blindtest extends events.EventEmitter {
         }
       }
       if (
-        message.content
-          .toLowerCase()
-          .includes(this.currentSong.title.toLowerCase())
+        normalize(message.content).includes(normalize(this.currentSong.title))
       ) {
         if (
           this._results.has(this.currentSong.url) &&
@@ -260,8 +262,8 @@ type EventsMap = {
   'no-player': () => void
   'new-owner-request': (newOwner: Player) => void
   'max-duration-exceeded': (currentSong: Song) => void
-  'on-artist-found': (
-    artist: string,
+  'on-artists-found': (
+    artists: string[],
     player: Player,
     message: Message,
     bonus: Bonus
