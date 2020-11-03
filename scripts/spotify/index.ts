@@ -24,6 +24,7 @@ const removeParens = true
       title = title.replace(/theme/gi, '')
       title = title.replace(/main title/gi, '')
     }
+    title = title.trim()
     console.log('Adding ' + title + '\n')
     await AirtableApiClient.songs()
       .create(
