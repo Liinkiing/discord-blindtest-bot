@@ -186,9 +186,7 @@ export class Blindtest extends events.EventEmitter {
         this.currentSong.artists.length > 0 &&
         this.currentSong.artists
           .map(normalize)
-          .some(artist =>
-            message.content.toLowerCase().includes(normalize(artist))
-          )
+          .some(artist => normalize(message.content).includes(artist))
       ) {
         if (
           this._results.has(this.currentSong.url) &&
