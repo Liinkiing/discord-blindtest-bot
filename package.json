@@ -17,7 +17,6 @@
     "node"
   ],
   "scripts": {
-    "prestart": "yarn build",
     "start": "cross-env NODE_ENV=production node -r pretty-error/start -r dotenv-flow/config dist/cjs/index.js",
     "dev": "cross-env NODE_ENV=development nodemon",
     "build": "rimraf dist && rollup -c",
