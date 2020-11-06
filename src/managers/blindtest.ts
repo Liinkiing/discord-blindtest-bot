@@ -91,6 +91,7 @@ export class BlindtestManager extends BaseManager {
         if (this._streamDispatcher) {
           this._streamDispatcher.pause(true)
         }
+        if (!this.blindtest) return
         if (this.blindtest.hasNextSong) {
           message.channel.send(SONG_INFO_EMBED(this.blindtest.currentSong!))
           message.channel.send(

@@ -11,8 +11,9 @@ export const SONG_INFO_EMBED = (song: Song) =>
     .setImage(song.picture ?? '')
     .setTitle(song.title)
     .setURL(song.link)
+    .addFields({ name: 'Artistes', value: song.artists.join(', ') })
     .setFooter(
-      song.artists.join(', '),
+      song.album ?? 'Album inconnu',
       'https://e7.pngegg.com/pngimages/420/432/png-clipart-spotify-logo-spotify-computer-icons-podcast-music-apps-miscellaneous-angle-thumbnail.png'
     )
     .setDescription(t('listen-on-spotify'))

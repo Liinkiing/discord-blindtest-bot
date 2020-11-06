@@ -54,7 +54,7 @@ french
   )
   .set(
     'blindtest.cant-join-already-started',
-    ':oopsie: Je vois que tes AMIS ne sont pas réellement tes AMIS car ils jouent sans toi... Dommage car tu ne peux pas rejoindre un blindtest en cours, réessaie une prochaine fois :hap:'
+    ':oopsie: Je vois que tes AMIS ne sont pas réellement tes AMIS car ils jouent sans toi... Dommage car tu ne peux pas rejoindre un blindtest en cours, réessaie une prochaine fois {hap}'
   )
   .set('blindtest.stopping', '{rem} Fin du blindtest')
   .set(
@@ -91,11 +91,11 @@ french
   )
   .set(
     'blindtest.on-artist-found',
-    "↗ *+{pts}pts* pour *{user}* pour avoir trouvé le nom de l'artiste."
+    "↗ **+{pts}pts** pour **{user}** pour avoir trouvé le nom de l'artiste."
   )
   .set(
     'blindtest.on-music-found',
-    '↗ *+{pts}pts* pour *{user}* pour avoir trouvé le nom de la musique.'
+    '↗ **+{pts}pts** pour **{user}** pour avoir trouvé le nom de la musique.'
   )
   .set('blindtest.bonus.fast', 'En moins de 6s en plus, pas mal')
   .set(
