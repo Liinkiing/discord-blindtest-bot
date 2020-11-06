@@ -30,6 +30,7 @@ export class BlindtestCommand extends BaseCommand {
     const argv = yargs(args)
       .option('limit', { alias: 'l', boolean: false, number: true, default: 0 })
       .option('skipArtists', { alias: 's', boolean: true, default: false })
+      .option('boardSong', { alias: 'b', boolean: true, default: true })
       .option('categories', {
         alias: 'c',
         array: true,
@@ -202,7 +203,13 @@ export class BlindtestCommand extends BaseCommand {
       limit,
       categories,
       skipArtists,
-    }: { categories: string[]; limit: number; skipArtists: boolean }
+      boardSong,
+    }: {
+      categories: string[]
+      limit: number
+      skipArtists: boolean
+      boardSong: boolean
+    }
   ) {
     if (bot.blindtestManager.blindtest) {
       message.reply(
@@ -215,7 +222,12 @@ export class BlindtestCommand extends BaseCommand {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
           message.channel,
-          { limit, categories, skipArtists }
+          {
+            limit,
+            categories,
+            skipArtists,
+            showScoreAfterEachSong: boardSong,
+          }
         )
         message.reply(
           `${t('blindtest.create-success')} ${

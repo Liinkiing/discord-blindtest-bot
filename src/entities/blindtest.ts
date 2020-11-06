@@ -42,6 +42,7 @@ export type BlindtestOptions = {
   limit: number
   categories: string[]
   skipArtists?: boolean
+  showScoreAfterEachSong?: boolean
 }
 
 export const PAUSE_DURATION = 5000
@@ -64,6 +65,8 @@ export class Blindtest extends events.EventEmitter {
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
 
+  public readonly showScoreAfterEachSong: boolean = true
+
   private readonly _limit: number = 0
   private readonly _skipArtists: boolean = false
   private readonly _categories: string[] = []
@@ -74,10 +77,11 @@ export class Blindtest extends events.EventEmitter {
 
   constructor(options: BlindtestOptions = { limit: 0, categories: [] }) {
     super()
+    makeObservable(this)
     this._limit = options.limit
     this._categories = options.categories
+    this.showScoreAfterEachSong = options.showScoreAfterEachSong ?? true
     this._skipArtists = options.skipArtists ?? false
-    makeObservable(this)
     autorun(() => {
       if (this.players.length === 0) {
         Logger.info('No more players in the blindtest. Deleting it')

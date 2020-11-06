@@ -208,8 +208,9 @@ export class BlindtestManager extends BaseManager {
               duration: PAUSE_DURATION / 1000,
             }),
             '\n',
-            t('global.separator'),
-            this.blindtest.scores,
+            ...(this.blindtest.showScoreAfterEachSong
+              ? [t('global.separator'), this.blindtest.scores]
+              : []),
           ].join('')
         )
         await this.blindtest.wait(PAUSE_DURATION)
