@@ -65,6 +65,7 @@ export class Blindtest extends events.EventEmitter {
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
 
+  public readonly guildId: string
   public readonly showScoreAfterEachSong: boolean = true
 
   private readonly _limit: number = 0
@@ -75,9 +76,13 @@ export class Blindtest extends events.EventEmitter {
 
   timeout: NodeJS.Timeout | null = null
 
-  constructor(options: BlindtestOptions = { limit: 0, categories: [] }) {
+  constructor(
+    options: BlindtestOptions = { limit: 0, categories: [] },
+    guildId: string
+  ) {
     super()
     makeObservable(this)
+    this.guildId = guildId
     this._limit = options.limit
     this._categories = options.categories
     this.showScoreAfterEachSong = options.showScoreAfterEachSong ?? true
@@ -85,7 +90,7 @@ export class Blindtest extends events.EventEmitter {
     autorun(() => {
       if (this.players.length === 0) {
         Logger.info('No more players in the blindtest. Deleting it')
-        this.emit('no-player')
+        this.emit('no-player', this)
       }
     })
     reaction(
@@ -95,10 +100,10 @@ export class Blindtest extends events.EventEmitter {
           clearInterval(this.timeout)
         }
         if (queue.length > 0) {
-          this.emit('on-song-changed', queue[0])
+          this.emit('on-song-changed', queue[0], this)
         } else {
           Logger.info('No more songs.')
-          this.emit('end')
+          this.emit('end', this)
         }
       }
     )
@@ -114,7 +119,7 @@ export class Blindtest extends events.EventEmitter {
             })`
           )
           if (this.isRunning) {
-            this.emit('on-skip-vote', voter)
+            this.emit('on-skip-vote', voter, this)
             if (
               voteSkips.length >= this.majorityVotesCount &&
               this.currentSong
@@ -123,7 +128,7 @@ export class Blindtest extends events.EventEmitter {
                 `The majority of players has decided to skip the song "${this.currentSong.title}". Skipping it...`
               )
               this.changeState(State.Waiting)
-              this.emit('on-song-skipped', this.currentSong)
+              this.emit('on-song-skipped', this.currentSong, this)
             }
           }
         }
@@ -161,7 +166,7 @@ export class Blindtest extends events.EventEmitter {
         oldCurrentSong === this.currentSong
       ) {
         this.changeState(State.Waiting)
-        this.emit('max-duration-exceeded', oldCurrentSong)
+        this.emit('max-duration-exceeded', oldCurrentSong, this)
       }
     }, MAX_DURATION)
   }
@@ -238,7 +243,7 @@ export class Blindtest extends events.EventEmitter {
         Logger.info(
           'Owner left the blindtest that had other people in. Reassign it to another player'
         )
-        this.emit('new-owner-request', this.players[0])
+        this.emit('new-owner-request', this.players[0], this)
       }
     }
 
@@ -366,11 +371,11 @@ ${getMedal(i)}${p.displayName} : ${p.points} pts`
 }
 
 type EventsMap = {
-  'no-player': () => void
-  'on-skip-vote': (voter: Player) => void
-  'on-song-skipped': (currentSong: Song) => void
-  'new-owner-request': (newOwner: Player) => void
-  'max-duration-exceeded': (currentSong: Song) => void
+  'no-player': (blindtest: Blindtest) => void
+  'on-skip-vote': (voter: Player, blindtest: Blindtest) => void
+  'on-song-skipped': (currentSong: Song, blindtest: Blindtest) => void
+  'new-owner-request': (newOwner: Player, blindtest: Blindtest) => void
+  'max-duration-exceeded': (currentSong: Song, blindtest: Blindtest) => void
   'on-artists-found': (
     artists: string[],
     player: Player,
@@ -383,8 +388,8 @@ type EventsMap = {
     message: Message,
     bonus: Bonus
   ) => void
-  'on-song-changed': (song: Song) => void
-  end: () => void
+  'on-song-changed': (song: Song, blindtest: Blindtest) => void
+  end: (blindtest: Blindtest) => void
 }
 
 export declare interface Blindtest {

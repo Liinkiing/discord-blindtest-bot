@@ -80,42 +80,40 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handleSkip({ message, bot }: Command) {
-    if (!bot.blindtestManager.blindtest?.isRunning) return
-    const player = bot.blindtestManager.blindtest.players.find(
-      p => p.id === message.member?.id
-    )
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (!blindtest?.isRunning) return
+    const player = blindtest.players.find(p => p.id === message.member?.id)
     if (!player) return
-    bot.blindtestManager.blindtest.addVoteSkip(player)
+    blindtest.addVoteSkip(player)
   }
 
   private handleStart({ bot, message }: Command) {
-    if (
-      bot.blindtestManager.blindtest &&
-      bot.blindtestManager.blindtest.isRunning
-    ) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (blindtest && blindtest.isRunning) {
       message.reply(t('blindtest.already-started'))
-    } else if (
-      bot.blindtestManager.blindtest &&
-      message.author.id === bot.blindtestManager.blindtest.owner.id
-    ) {
+    } else if (blindtest && message.author.id === blindtest.owner.id) {
       bot.blindtestManager.startBlindtest(message)
-    } else if (bot.blindtestManager.blindtest) {
+    } else if (blindtest) {
       message.reply(
         t('blindtest.only-owner-can-start', {
           ...autoProvideEmojis(message.guild),
-          owner: bot.blindtestManager.blindtest.owner.displayName,
+          owner: blindtest.owner.displayName,
         })
       )
     }
   }
 
   private handleDelete({ bot, message }: Command) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
     if (
-      bot.blindtestManager.blindtest &&
-      !bot.blindtestManager.blindtest.isRunning &&
-      message.author.id === bot.blindtestManager.blindtest.owner.id
+      blindtest &&
+      !blindtest.isRunning &&
+      message.author.id === blindtest.owner.id
     ) {
-      bot.blindtestManager.blindtest.emit('end')
+      blindtest.emit('end', blindtest)
       message.reply(
         t('blindtest.deleted', {
           ...autoProvideEmojis(message.guild),
@@ -125,21 +123,20 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handleStop({ bot, message }: Command) {
-    if (
-      bot.blindtestManager.blindtest &&
-      message.author.id === bot.blindtestManager.blindtest.owner.id
-    ) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (blindtest && message.author.id === blindtest.owner.id) {
       message.reply(
         t('blindtest.stopping', {
           ...autoProvideEmojis(message.guild),
         })
       )
-      bot.blindtestManager.blindtest?.emit('end')
-    } else if (bot.blindtestManager.blindtest) {
+      blindtest.emit('end', blindtest)
+    } else if (blindtest) {
       message.reply(
         t('blindtest.only-owner-can-stop', {
           ...autoProvideEmojis(message.guild),
-          owner: bot.blindtestManager.blindtest.owner.displayName,
+          owner: blindtest.owner.displayName,
         })
       )
     } else {
@@ -148,23 +145,21 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handleJoin({ bot, message }: Command) {
-    if (!bot.blindtestManager.blindtest) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (!blindtest) {
       message.reply(t('blindtest.no-pending-blindtests'))
     } else if (
-      bot.blindtestManager.blindtest &&
+      blindtest &&
       message.member &&
-      bot.blindtestManager.blindtest.hasMemberJoined(message.member)
+      blindtest.hasMemberJoined(message.member)
     ) {
       message.reply(
         t('blindtest.already-joined', {
           ...autoProvideEmojis(message.guild),
         })
       )
-    } else if (
-      bot.blindtestManager.blindtest &&
-      message.member &&
-      bot.blindtestManager.blindtest.isRunning
-    ) {
+    } else if (blindtest && message.member && blindtest.isRunning) {
       message.reply(
         t('blindtest.cant-join-already-started', {
           ...autoProvideEmojis(message.guild),
@@ -175,18 +170,20 @@ export class BlindtestCommand extends BaseCommand {
         t('blindtest.user-joined', { ...autoProvideEmojis(message.guild) })
       )
       if (message.member) {
-        bot.blindtestManager.blindtest.addPlayer(new Player(message.member))
+        blindtest.addPlayer(new Player(message.member))
       }
     }
   }
 
   private handleLeave({ bot, message }: Command) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
     if (
-      bot.blindtestManager.blindtest &&
+      blindtest &&
       message.member &&
-      bot.blindtestManager.blindtest.hasMemberJoined(message.member)
+      blindtest.hasMemberJoined(message.member)
     ) {
-      bot.blindtestManager.blindtest.removePlayer(message.member)
+      blindtest.removePlayer(message.member)
       message.reply(t('blindtest.user-left'))
     } else {
       message.reply(
@@ -211,17 +208,19 @@ export class BlindtestCommand extends BaseCommand {
       boardSong: boolean
     }
   ) {
-    if (bot.blindtestManager.blindtest) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (blindtest) {
       message.reply(
         t('blindtest.already-created-by', {
-          user: bot.blindtestManager.blindtest.owner.displayName,
+          user: blindtest.owner.displayName,
         })
       )
     } else {
       if (message.member) {
         bot.blindtestManager.createBlindtest(
           new Player(message.member),
-          message.channel,
+          message,
           {
             limit,
             categories,
@@ -245,13 +244,15 @@ export class BlindtestCommand extends BaseCommand {
   }
 
   private handlePlayers({ bot, message }: Command) {
-    if (bot.blindtestManager.blindtest) {
+    if (!message.guild) throw new Error('No guild!')
+    const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
+    if (blindtest) {
       message.reply(
         t('blindtest.commands.players', {
           ...autoProvideEmojis(message.guild),
         })
       )
-      bot.blindtestManager.blindtest.players.forEach(player => {
+      blindtest.players.forEach(player => {
         message.reply(player.displayName)
       })
     }
