@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import { Blindtest } from '~/entities/blindtest'
 import { DiscordUserID } from '~/@types'
 import { GuildMember } from 'discord.js'
 import { action, makeObservable, observable } from 'mobx'
@@ -16,8 +15,10 @@ export class Player {
   }
 
   @action
-  public addPoints(points: number) {
+  public addPoints(points: number): this {
     this.points += points
+
+    return this
   }
 
   public toString(): string {

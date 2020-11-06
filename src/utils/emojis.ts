@@ -1,9 +1,11 @@
-import { Guild } from 'discord.js'
+import { Guild, GuildEmoji } from 'discord.js'
 
-export const getEmoji = (name: string, guild?: Guild | null) =>
+export const getEmoji = (name: string, guild?: Guild | null): GuildEmoji | '' =>
   guild?.emojis.cache.find(e => e.name === name) ?? ''
 
-export const autoProvideEmojis = (guild?: Guild | null) => {
+export const autoProvideEmojis = (
+  guild?: Guild | null
+): Record<string, GuildEmoji | ''> => {
   const emojis = [
     'sanic',
     'jpec',

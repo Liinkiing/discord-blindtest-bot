@@ -1,5 +1,5 @@
 import events from 'events'
-import { shuffle } from 'lodash'
+import _ from 'lodash'
 import {
   action,
   autorun,
@@ -73,8 +73,7 @@ export class Blindtest extends events.EventEmitter {
   private readonly _categories: string[] = []
   private _timestamp = Date.now()
   private _results: Map<YouTubeURL, FoundType> = new Map()
-
-  timeout: NodeJS.Timeout | null = null
+  private _timeout: NodeJS.Timeout | number | null = null
 
   constructor(
     options: BlindtestOptions = { limit: 0, categories: [] },
@@ -96,8 +95,8 @@ export class Blindtest extends events.EventEmitter {
     reaction(
       () => this.queue,
       queue => {
-        if (this.timeout) {
-          clearInterval(this.timeout)
+        if (this._timeout) {
+          clearInterval(this._timeout as number)
         }
         if (queue.length > 0) {
           this.emit('on-song-changed', queue[0], this)
@@ -159,7 +158,7 @@ export class Blindtest extends events.EventEmitter {
   public createTimeout(): void {
     this._timestamp = Date.now()
     const oldCurrentSong = this.currentSong
-    this.timeout = setInterval(() => {
+    this._timeout = setInterval(() => {
       if (
         this.isRunning &&
         oldCurrentSong &&
@@ -175,7 +174,7 @@ export class Blindtest extends events.EventEmitter {
   public async initQueue(): Promise<void> {
     const records = await AirtableApiClient.songs().select().all()
     runInAction(() => {
-      let songs = shuffle(records.map(SongMapper.fromApi))
+      let songs = _.shuffle(records.map(SongMapper.fromApi))
       if (this._categories.length > 0) {
         songs = songs.filter(s =>
           s.genres.some(c =>

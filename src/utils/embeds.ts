@@ -4,7 +4,7 @@ import { t } from '~/translations'
 
 const color = '#1DB954'
 
-export const SONG_INFO_EMBED = (song: Song) =>
+export const SONG_INFO_EMBED = (song: Song): MessageEmbed =>
   new MessageEmbed()
     .setColor(color)
     .setThumbnail('https://www.nautiljon.com/images/perso/00/82/rem_13328.jpg')

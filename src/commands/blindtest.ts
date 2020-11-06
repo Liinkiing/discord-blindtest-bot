@@ -1,5 +1,5 @@
 import yargs from 'yargs'
-import { uniq, flatten } from 'lodash'
+import _ from 'lodash'
 import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 import AirtableApiClient from '~/services/airtable-api'
@@ -18,13 +18,17 @@ type Options =
   | 'categories'
 
 export class BlindtestCommand extends BaseCommand {
-  _name = 'bt'
+  _command = 'bt'
+
+  public getName(): string {
+    return 'BlindtestCommand'
+  }
 
   public async execute({
     bot,
     args,
     message,
-    name,
+    command,
   }: Command<[Options, string]>): Promise<void> {
     const [option] = args
     const argv = yargs(args)
@@ -38,31 +42,31 @@ export class BlindtestCommand extends BaseCommand {
       }).argv
     switch (option) {
       case 'skip':
-        this.handleSkip({ bot, args, message, name })
+        this.handleSkip({ bot, args, message, command })
         break
       case 'categories':
-        this.handleCategories({ bot, args, message, name })
+        this.handleCategories({ bot, args, message, command })
         break
       case 'start':
-        this.handleStart({ bot, args, message, name })
+        this.handleStart({ bot, args, message, command })
         break
       case 'delete':
-        this.handleDelete({ bot, args, message, name })
+        this.handleDelete({ bot, args, message, command })
         break
       case 'players':
-        this.handlePlayers({ bot, args, message, name })
+        this.handlePlayers({ bot, args, message, command })
         break
       case 'create':
-        this.handleCreate({ bot, args, message, name }, argv)
+        this.handleCreate({ bot, args, message, command }, argv)
         break
       case 'join':
-        this.handleJoin({ bot, args, message, name })
+        this.handleJoin({ bot, args, message, command })
         break
       case 'leave':
-        this.handleLeave({ bot, args, message, name })
+        this.handleLeave({ bot, args, message, command })
         break
       case 'stop':
-        this.handleStop({ bot, args, message, name })
+        this.handleStop({ bot, args, message, command })
         break
     }
   }
@@ -73,7 +77,7 @@ export class BlindtestCommand extends BaseCommand {
         fields: ['Genres'],
       })
       .all()
-    const categories = uniq(flatten(response.map(r => r.get('Genres'))))
+    const categories = _.uniq(_.flatten(response.map(r => r.get('Genres'))))
     message.reply(
       t('blindtest.commands.categories', { categories: categories.join(' | ') })
     )

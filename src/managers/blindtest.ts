@@ -37,6 +37,10 @@ export class BlindtestManager extends BaseManager {
     super(bot)
   }
 
+  public getName(): string {
+    return 'BlindtestManager'
+  }
+
   public createBlindtest(
     owner: Player,
     message: Message,
@@ -50,7 +54,7 @@ export class BlindtestManager extends BaseManager {
     Logger.success(`Created blindtest with owner ${owner.toString()}`)
   }
 
-  public async startBlindtest(message: Message) {
+  public async startBlindtest(message: Message): Promise<void> {
     if (!message.guild) throw new Error('No guild!')
     if (
       this.blindtests.has(message.guild?.id) &&

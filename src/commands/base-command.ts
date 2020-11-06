@@ -7,35 +7,37 @@ export type Command<T = string[]> = {
   bot: Bot
   message: Message
   args: T
-  name: string
+  command: string
 }
 
 export abstract class BaseCommand {
   protected _prefix = '!'
-  protected _name = ''
+  protected _command = ''
 
   constructor(protected bot: Bot) {
     this.bot.client.on('message', async message => {
       if (message.author.bot || message.partial) return
       if (!message.content.startsWith(this._prefix)) return
-      const [name, ...args] = message.content
+      const [command, ...args] = message.content
         .substring(1)
         .split(/("[^"]*"|'[^']*'|[\S]+)+/)
         .filter(v => v !== '' && v !== ' ')
-      if (name !== this._name) return
+      if (command !== this._command) return
 
       await this.execute({
         bot: this.bot,
         args,
-        name,
+        command,
         message,
       })
     })
-    Logger.info(`"${chalk.yellow(this.constructor.name)}" ready perfectly`)
+    Logger.info(`"${chalk.yellow(this.getName())}" ready perfectly`)
   }
 
-  get name(): string {
-    return this._name
+  public abstract getName(): string
+
+  get command(): string {
+    return this._command
   }
 
   get prefix(): string {

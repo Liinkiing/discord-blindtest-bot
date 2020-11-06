@@ -2,7 +2,7 @@ import messages, { MessageIds } from '~/translations/messages'
 import { Logger } from '~/services/logger'
 import { currentLocale, defaultLocale } from '~/translations/config'
 
-const t = (key: MessageIds, values?: Record<string, any>) => {
+const t = (key: MessageIds, values?: Record<string, any>): string => {
   if (!messages.has(currentLocale) || !messages.get(currentLocale)!.get(key)) {
     Logger.warn(`Translation '${key}' for locale '${currentLocale}' not found.`)
   }
