@@ -36,6 +36,7 @@ export class Bot {
   public async login(token: string): Promise<boolean> {
     await this._client.login(token)
     Logger.success(`Logged in as ${this.name}`)
+    this._client.user?.setActivity('MINA, GAMBATENE', { type: 'LISTENING' })
     this.initCommands()
     this.initManagers()
 
