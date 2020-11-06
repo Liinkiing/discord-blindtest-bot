@@ -46,7 +46,7 @@ french
   .set('global.separator', '===================================')
   .set(
     'blindtest.on-song-skipped',
-    'La majorité a voté pour passer la musique, vous avez un peu de mal non ? {hap}'
+    'Tous les joueurs ont votés pour passer la musique, vous avez un peu de mal non ? {hap}'
   )
   .set(
     'blindtest.on-skip-vote',

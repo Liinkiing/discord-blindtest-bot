@@ -244,7 +244,6 @@ export class BlindtestManager extends BaseManager {
         await channel.send(`${t(message, values)}`)
       }
       await channel.send(SONG_INFO_EMBED(currentSong))
-      if (!guildBlintest) return
       if (guildBlintest.hasNextSong) {
         await channel.send(
           [

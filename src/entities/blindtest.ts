@@ -124,7 +124,7 @@ export class Blindtest extends events.EventEmitter {
               this.currentSong
             ) {
               Logger.info(
-                `The majority of players has decided to skip the song "${this.currentSong.title}". Skipping it...`
+                `All players has decided to skip the song "${this.currentSong.title}". Skipping it...`
               )
               this.changeState(State.Waiting)
               this.emit('on-song-skipped', this.currentSong, this)
@@ -137,7 +137,7 @@ export class Blindtest extends events.EventEmitter {
 
   @computed
   get majorityVotesCount(): number {
-    return Math.floor(this.players.length / 2 + 1)
+    return this.players.length
   }
 
   public async start(): Promise<void> {
