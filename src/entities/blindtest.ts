@@ -1,12 +1,12 @@
 import events from 'events'
 import { shuffle } from 'lodash'
 import {
-  makeObservable,
-  observable,
   action,
   autorun,
-  reaction,
   computed,
+  makeObservable,
+  observable,
+  reaction,
   runInAction,
 } from 'mobx'
 import { Player } from '~/entities/player'
@@ -26,9 +26,9 @@ export const POINTS_PER_TITLE = 1
 export type Bonus = 0 | 1 | 3
 
 export enum State {
-  Pending,
-  Waiting,
-  Running,
+  Pending = 'PENDING',
+  Waiting = 'WAITING',
+  Running = 'RUNNING',
 }
 
 type FoundType = {
@@ -60,6 +60,7 @@ export const computeBonusSentence = (bonus: Bonus): string => {
 export class Blindtest extends events.EventEmitter {
   @observable public state: State = State.Pending
   @observable public owner!: Player
+  @observable public voteSkips: Player[] = []
   @observable public players: Player[] = []
   @observable public queue: Song[] = []
 
@@ -97,25 +98,43 @@ export class Blindtest extends events.EventEmitter {
         }
       }
     )
+    reaction(
+      () => this.voteSkips,
+      voteSkips => {
+        if (voteSkips.length > 0) {
+          const voter = [...voteSkips].pop()
+          if (!voter) return
+          Logger.info(
+            `${voter.toString()} wants to skip this song (${voteSkips.length}/${
+              this.majorityVotesCount
+            })`
+          )
+          if (this.isRunning) {
+            this.emit('on-skip-vote', voter)
+            if (
+              voteSkips.length >= this.majorityVotesCount &&
+              this.currentSong
+            ) {
+              Logger.info(
+                `The majority of players has decided to skip the song "${this.currentSong.title}". Skipping it...`
+              )
+              this.changeState(State.Waiting)
+              this.emit('on-song-skipped', this.currentSong)
+            }
+          }
+        }
+      }
+    )
+  }
+
+  @computed
+  get majorityVotesCount(): number {
+    return Math.floor(this.players.length / 2 + 1)
   }
 
   public async start(): Promise<void> {
     await this.initQueue()
-    this.state = State.Running
-  }
-
-  public createTimeout(): void {
-    this._timestamp = Date.now()
-    const oldCurrentSong = this.currentSong
-    this.timeout = setInterval(() => {
-      if (
-        this.state === State.Running &&
-        oldCurrentSong &&
-        oldCurrentSong === this.currentSong
-      ) {
-        this.emit('max-duration-exceeded', oldCurrentSong)
-      }
-    }, MAX_DURATION)
+    this.changeState(State.Running)
   }
 
   @computed
@@ -126,6 +145,21 @@ export class Blindtest extends events.EventEmitter {
   @computed
   get currentSong(): Song | null {
     return this.queue.length > 0 ? this.queue[0] : null
+  }
+
+  public createTimeout(): void {
+    this._timestamp = Date.now()
+    const oldCurrentSong = this.currentSong
+    this.timeout = setInterval(() => {
+      if (
+        this.isRunning &&
+        oldCurrentSong &&
+        oldCurrentSong === this.currentSong
+      ) {
+        this.changeState(State.Waiting)
+        this.emit('max-duration-exceeded', oldCurrentSong)
+      }
+    }, MAX_DURATION)
   }
 
   @action
@@ -154,16 +188,41 @@ export class Blindtest extends events.EventEmitter {
 
   @action
   public nextSong(): void {
-    this.state = State.Running
+    this.clearVotesSkip()
     const [, ...items] = this.queue
     this.queue = [...items]
+    this.changeState(State.Running)
   }
 
   @action
   public addPlayer(player: Player): this {
-    this.players.push(player)
+    if (!this.players.find(p => p.id === player.id)) {
+      this.players = [...this.players, player]
+    }
 
     return this
+  }
+
+  @action
+  public addVoteSkip(player: Player): this {
+    if (!this.voteSkips.find(p => p.id === player.id)) {
+      this.voteSkips = [...this.voteSkips, player]
+    }
+
+    return this
+  }
+
+  @action
+  public clearVotesSkip(): this {
+    this.voteSkips = []
+
+    return this
+  }
+
+  @action public wait(ms: number): Promise<unknown> {
+    this.changeState(State.Waiting)
+
+    return wait(ms)
   }
 
   @action
@@ -182,9 +241,11 @@ export class Blindtest extends events.EventEmitter {
     return this
   }
 
-  @action public wait(ms: number): Promise<unknown> {
-    this.state = State.Waiting
-    return wait(ms)
+  @action
+  private changeState = (state: State): this => {
+    this.state = state
+
+    return this
   }
 
   @action
@@ -302,6 +363,8 @@ ${getMedal(i)}${p.displayName} : ${p.points} pts`
 
 type EventsMap = {
   'no-player': () => void
+  'on-skip-vote': (voter: Player) => void
+  'on-song-skipped': (currentSong: Song) => void
   'new-owner-request': (newOwner: Player) => void
   'max-duration-exceeded': (currentSong: Song) => void
   'on-artists-found': (

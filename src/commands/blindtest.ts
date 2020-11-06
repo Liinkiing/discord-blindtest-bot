@@ -4,13 +4,14 @@ import { BaseCommand, Command } from '~/commands/base-command'
 import { Player } from '~/entities/player'
 import AirtableApiClient from '~/services/airtable-api'
 import { t } from '~/translations'
-import { autoProvideEmojis, getEmoji } from '~/utils/emojis'
+import { autoProvideEmojis } from '~/utils/emojis'
 
 type Options =
   | 'start'
   | 'players'
   | 'create'
   | 'join'
+  | 'skip'
   | 'delete'
   | 'leave'
   | 'stop'
@@ -35,6 +36,9 @@ export class BlindtestCommand extends BaseCommand {
         default: [],
       }).argv
     switch (option) {
+      case 'skip':
+        this.handleSkip({ bot, args, message, name })
+        break
       case 'categories':
         this.handleCategories({ bot, args, message, name })
         break
@@ -72,6 +76,15 @@ export class BlindtestCommand extends BaseCommand {
     message.reply(
       t('blindtest.commands.categories', { categories: categories.join(' | ') })
     )
+  }
+
+  private handleSkip({ message, bot }: Command) {
+    if (!bot.blindtestManager.blindtest?.isRunning) return
+    const player = bot.blindtestManager.blindtest.players.find(
+      p => p.id === message.member?.id
+    )
+    if (!player) return
+    bot.blindtestManager.blindtest.addVoteSkip(player)
   }
 
   private handleStart({ bot, message }: Command) {

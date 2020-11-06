@@ -31,6 +31,8 @@ const messageIds = [
   'blindtest.create-category',
   'blindtest.create-skip-artist',
   'listen-on-spotify',
+  'blindtest.on-song-skipped',
+  'blindtest.on-skip-vote',
 ] as const
 
 export type MessageIds = typeof messageIds[number]
@@ -42,10 +44,18 @@ const messages = new Map<Locale, MessageMap>()
 const french: MessageMap = new Map()
 french
   .set('global.separator', '===================================')
+  .set(
+    'blindtest.on-song-skipped',
+    'La majorité a voté pour passer la musique, vous avez un peu de mal non ? {hap}'
+  )
+  .set(
+    'blindtest.on-skip-vote',
+    '📩 **{voter}** a voté pour passer la musique. (*{currentVotes}/{maxVotes} votes requis*)'
+  )
   .set('listen-on-spotify', 'Écouter sur Spotify')
   .set(
     'blindtest.commands.players',
-    ':typescript: Liste des joueurs :typescript:'
+    '{typescript} Liste des joueurs {typescript}'
   )
   .set('blindtest.user-left', "Ce n'est qu'un aurevoir... 😥")
   .set(
@@ -54,7 +64,7 @@ french
   )
   .set(
     'blindtest.cant-join-already-started',
-    ':oopsie: Je vois que tes AMIS ne sont pas réellement tes AMIS car ils jouent sans toi... Dommage car tu ne peux pas rejoindre un blindtest en cours, réessaie une prochaine fois {hap}'
+    '{oopsie} Je vois que tes AMIS ne sont pas réellement tes AMIS car ils jouent sans toi... Dommage car tu ne peux pas rejoindre un blindtest en cours, réessaie une prochaine fois {hap}'
   )
   .set('blindtest.stopping', '{rem} Fin du blindtest')
   .set(
@@ -69,13 +79,13 @@ french
   .set('blindtest.deleted', 'Blindtest supprimé {rem}')
   .set(
     'blindtest.only-owner-can-start',
-    'BAKA BAKA BAKAAAAA {sulk} ! Seul le créateur du blindtest ({owner}) peut démarrer le blindtest'
+    'BAKA BAKA BAKAAAAA {sulk} ! Seul le créateur du blindtest (**{owner}**) peut démarrer le blindtest'
   )
   .set(
     'blindtest.only-owner-can-stop',
-    'BAKA BAKA BAKAAAAA {sulk} ! Seul le créateur du blindtest ({owner}) peut arrêter le blindtest'
+    'BAKA BAKA BAKAAAAA {sulk} ! Seul le créateur du blindtest (**{owner}**) peut arrêter le blindtest'
   )
-  .set('blindtest.already-started', 'Un blindtest est déjà en cours :oopsie:')
+  .set('blindtest.already-started', 'Un blindtest est déjà en cours {oopsie}')
   .set(
     'blindtest.commands.categories',
     'Voici la liste des catégories disponibles : {categories}'
@@ -100,7 +110,7 @@ french
   .set('blindtest.bonus.fast', 'En moins de 6s en plus, pas mal')
   .set(
     'blindtest.bonus.sonic',
-    'GOTTA GO FAST :sanic:, tu as trouvé en moins de 3s ça devrait être toi le bot'
+    'GOTTA GO FAST {sanic}, tu as trouvé en moins de 3s ça devrait être toi le bot'
   )
   .set(
     'blindtest.finished',
@@ -112,7 +122,7 @@ french
   )
   .set(
     'blindtest.needs-vocal-channel',
-    'BAKA BAKA BAKAAAAA {sulk} ! Tu dois être dans un channel vocal pour faire un blindtest :pole_emploi:'
+    'BAKA BAKA BAKAAAAA {sulk} ! Tu dois être dans un channel vocal pour faire un blindtest {pole_emploi}'
   )
   .set('blindtest.create-success', 'Le blindtest a bien été créé.')
   .set(

@@ -11,8 +11,8 @@ const t = (key: MessageIds, values?: Record<string, any>) => {
     messages.get(defaultLocale)!.get(key) ??
     key
   if (values) {
-    Object.entries(values).map(([key, value]) => {
-      message = message.replace(`{${key}}`, value)
+    Object.entries(values).map(([k, v]) => {
+      message = message.replace(new RegExp(`{${k}}`, 'g'), v)
     })
   }
   return message

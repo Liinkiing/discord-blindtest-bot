@@ -24,6 +24,7 @@ import {
 import { t } from '~/translations'
 import { autoProvideEmojis } from '~/utils/emojis'
 import { SONG_INFO_EMBED } from '~/utils/embeds'
+import { MessageIds } from '~/translations/messages'
 
 type Channel = TextChannel | NewsChannel | DMChannel
 
@@ -84,24 +85,12 @@ export class BlindtestManager extends BaseManager {
     if (
       this.blindtest &&
       this.blindtest.isRunning &&
+      this.blindtest.currentSong &&
       this.blindtest.hasMemberJoined(message.member)
     ) {
       const { foundTitle, foundArtist } = this.blindtest.guessSong(message)
       if (foundTitle && foundArtist) {
-        if (this._streamDispatcher) {
-          this._streamDispatcher.pause(true)
-        }
-        if (!this.blindtest) return
-        if (this.blindtest.hasNextSong) {
-          message.channel.send(SONG_INFO_EMBED(this.blindtest.currentSong!))
-          message.channel.send(
-            t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
-          )
-          message.channel.send(t('global.separator'))
-          message.channel.send(this.blindtest.scores)
-          await this.blindtest.wait(PAUSE_DURATION)
-        }
-        this.blindtest.nextSong()
+        await this.prepareNextSong({ currentSong: this.blindtest.currentSong })
       }
     }
   }
@@ -150,29 +139,79 @@ export class BlindtestManager extends BaseManager {
 
   private onNewOwnerRequest = (owner: Player): void => {
     if (this._channel && this.blindtest) {
-      this._channel.send(t('blindtest.owner-left', { user: owner.displayName }))
+      this._channel.send(
+        t('blindtest.owner-left', {
+          user: owner.displayName,
+          ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
+        })
+      )
       this.blindtest.setOwner(owner)
     }
   }
 
   private onMaxDurationExceeded = async (currentSong: Song): Promise<void> => {
+    await this.prepareNextSong({
+      currentSong,
+      message: 'blindtest.max-duration-exceeded',
+      values: {
+        song: currentSong.title,
+        ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
+      },
+    })
+  }
+
+  private onSongSkipped = async (currentSong: Song): Promise<void> => {
+    await this.prepareNextSong({
+      currentSong,
+      message: 'blindtest.on-song-skipped',
+      values: {
+        ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
+      },
+    })
+  }
+
+  private onSkipVote = (voter: Player): void => {
+    if (this._channel && this.blindtest) {
+      this._channel.send(
+        t('blindtest.on-skip-vote', {
+          voter: voter.displayName,
+          currentVotes: this.blindtest.voteSkips.length,
+          maxVotes: this.blindtest.majorityVotesCount,
+          ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
+        })
+      )
+    }
+  }
+
+  private prepareNextSong = async ({
+    currentSong,
+    message,
+    values,
+  }: {
+    currentSong: Song
+    message?: MessageIds
+    values?: Record<string, any>
+  }) => {
     if (this._channel && this.blindtest) {
       if (this._streamDispatcher) {
         this._streamDispatcher.pause(true)
       }
-      this._channel.send(
-        `${t('blindtest.max-duration-exceeded', {
-          song: currentSong.title,
-          ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
-        })}`
-      )
-      this._channel.send(SONG_INFO_EMBED(currentSong))
+      if (message) {
+        await this._channel.send(`${t(message, values)}`)
+      }
+      await this._channel.send(SONG_INFO_EMBED(currentSong))
+      if (!this.blindtest) return
       if (this.blindtest.hasNextSong) {
-        this._channel.send(
-          t('blindtest.next-song-within', { duration: PAUSE_DURATION / 1000 })
+        await this._channel.send(
+          [
+            t('blindtest.next-song-within', {
+              duration: PAUSE_DURATION / 1000,
+            }),
+            '\n',
+            t('global.separator'),
+            this.blindtest.scores,
+          ].join('')
         )
-        this._channel.send(t('global.separator'))
-        this._channel.send(this.blindtest.scores)
         await this.blindtest.wait(PAUSE_DURATION)
       }
       this.blindtest.nextSong()
@@ -185,6 +224,8 @@ export class BlindtestManager extends BaseManager {
       this.blindtest.on('new-owner-request', this.onNewOwnerRequest)
       this.blindtest.on('no-player', this.endBlindtest)
       this.blindtest.on('max-duration-exceeded', this.onMaxDurationExceeded)
+      this.blindtest.on('on-song-skipped', this.onSongSkipped)
+      this.blindtest.on('on-skip-vote', this.onSkipVote)
       this.blindtest.on('on-song-changed', this.onSongChanged)
       this.blindtest.on('on-artists-found', this.onArtistsFound)
       this.blindtest.on('on-title-found', this.onTitleFound)
