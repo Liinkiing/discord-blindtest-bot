@@ -60,12 +60,17 @@ export class BlindtestManager extends BaseManager {
       this.blindtests.has(message.guild?.id) &&
       message.member?.voice.channel
     ) {
-      message.channel.send('@everyone ' + t('blindtest.will-start'))
+      const blindtest = this.blindtests.get(message.guild.id)!
+      message.channel.send(
+        t('blindtest.will-start', {
+          players: blindtest.players.map(p => `<@${p.id}>`).join(', '),
+        })
+      )
       this._connections.set(
         message.guild.id,
         await message.member.voice.channel.join()
       )
-      await this.blindtests.get(message.guild.id)!.start()
+      await blindtest.start()
     } else {
       message.channel.send(
         t('blindtest.needs-vocal-channel', {

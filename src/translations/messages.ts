@@ -71,7 +71,7 @@ french
     'blindtest.already-joined',
     "BAKA BAKA BAKAAAAA {sulk} ! T'es déjà dans le blindtest, tu mérites des gifles"
   )
-  .set('blindtest.will-start', 'le blindtest va commencer')
+  .set('blindtest.will-start', '👋 {players}, le blindtest va commencer')
   .set(
     'blindtest.no-pending-blindtests',
     "Aucun blindtest n'est en cours 😥. Tu peux en créér un avec !bt create."
