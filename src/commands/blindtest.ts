@@ -5,6 +5,8 @@ import { Player } from '~/entities/player'
 import AirtableApiClient from '~/services/airtable-api'
 import { t } from '~/translations'
 import { autoProvideEmojis } from '~/utils/emojis'
+import { MessageEmbed } from 'discord.js'
+import { INFO_EMBED } from '~/utils/embeds'
 
 type Options =
   | 'start'
@@ -13,6 +15,7 @@ type Options =
   | 'join'
   | 'skip'
   | 'delete'
+  | 'help'
   | 'leave'
   | 'stop'
   | 'categories'
@@ -24,6 +27,10 @@ export class BlindtestCommand extends BaseCommand {
     return 'BlindtestCommand'
   }
 
+  private printHelpText(): MessageEmbed {
+    return INFO_EMBED()
+  }
+
   public async execute({
     bot,
     args,
@@ -31,7 +38,8 @@ export class BlindtestCommand extends BaseCommand {
     command,
   }: Command<[Options, string]>): Promise<void> {
     const [option] = args
-    const argv = yargs(args)
+    const input = yargs(args)
+      .help(false)
       .option('limit', { alias: 'l', boolean: false, number: true, default: 0 })
       .option('skipArtists', { alias: 's', boolean: true, default: false })
       .option('boardSong', { alias: 'b', boolean: true, default: true })
@@ -39,10 +47,14 @@ export class BlindtestCommand extends BaseCommand {
         alias: 'c',
         array: true,
         default: [],
-      }).argv
+      })
+    const argv = input.argv
     switch (option) {
       case 'skip':
         this.handleSkip({ bot, args, message, command })
+        break
+      case 'help':
+        this.handleHelp({ bot, args, message, command })
         break
       case 'categories':
         this.handleCategories({ bot, args, message, command })
@@ -90,6 +102,10 @@ export class BlindtestCommand extends BaseCommand {
     const player = blindtest.players.find(p => p.id === message.member?.id)
     if (!player) return
     blindtest.addVoteSkip(player)
+  }
+
+  private handleHelp({ message }: Command) {
+    message.reply(this.printHelpText())
   }
 
   private handleStart({ bot, message }: Command) {

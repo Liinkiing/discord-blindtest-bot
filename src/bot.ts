@@ -6,6 +6,8 @@ import { BlindtestManager } from '~/managers'
 import { Logger } from '~/services/logger'
 import { BaseManager } from '~/managers/manager'
 
+const DEFAULT_ACTIVITY = '!bt help'
+
 export class Bot {
   private readonly _client: Client
   private _commands: BaseCommand[] = []
@@ -36,7 +38,7 @@ export class Bot {
   public async login(token: string): Promise<boolean> {
     await this._client.login(token)
     Logger.success(`Logged in as ${this.name}`)
-    this._client.user?.setActivity('MINA, GAMBATENE', { type: 'LISTENING' })
+    this._client.user?.setActivity(DEFAULT_ACTIVITY, { type: 'LISTENING' })
     this.initCommands()
     this.initManagers()
 
