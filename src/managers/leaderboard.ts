@@ -11,33 +11,55 @@ export class LeaderboardManager extends BaseManager {
   constructor(protected bot: Bot) {
     super(bot)
   }
+
   public getName(): string {
     return 'LeaderboardManager'
   }
 
+  public getLeaderboardForGuild = async (
+    guildId: string,
+    max = 10
+  ): Promise<Entry[]> => {
+    try {
+      const records = await AirtableApiClient.leaderboard()
+        .select({
+          maxRecords: max,
+          sort: [
+            {
+              field: 'Total points',
+              direction: 'desc',
+            },
+            {
+              field: 'Win count',
+              direction: 'desc',
+            },
+          ],
+          filterByFormula: `{Guild ID} = "${guildId}"`,
+        })
+        .all()
+
+      return records.map(EntryMapper.fromApi)
+    } catch (e) {
+      console.error(e)
+      return []
+    }
+  }
+
   public saveBlindtest = async (blindtest: Blindtest): Promise<void> => {
+    if (!blindtest.winner) return
     Logger.info('Saving blindtest to leaderboard...')
     for (const p of blindtest.sortedPlayers) {
       let entry = await this.retrieveEntry({
         player: p,
         guildId: blindtest.guildId,
       })
-      Logger.info(`Fetching leaderboard entry for ${p.toString()}...`)
       if (!entry) {
-        Logger.info(
-          `Could not fetch leaderboard entry. Creating a new entry for ${p.toString()}...`
-        )
         entry = await this.createEntry({
           player: p,
           guildId: blindtest.guildId,
+          isWinner: p.id === blindtest.winner?.id,
         })
-        Logger.success(
-          `Successfully created leaderboard entry for ${p.toString()}`
-        )
       } else {
-        Logger.info(
-          `Successfully fetched leaderboard entry for ${p.toString()}. Updating it...`
-        )
         entry = await this.bot.leaderboardManager.updateEntry({
           entry,
           player: p,
@@ -95,14 +117,16 @@ export class LeaderboardManager extends BaseManager {
   public createEntry = async ({
     player,
     guildId,
+    isWinner,
   }: {
     player: Player
     guildId: string
+    isWinner: boolean
   }): Promise<Entry> => {
     const record = await AirtableApiClient.leaderboard().create({
       'User ID': player.id,
       'Guild ID': guildId,
-      'Win count': 1,
+      'Win count': isWinner ? 1 : 0,
       'Total points': player.points,
     })
 

@@ -6,9 +6,10 @@ import AirtableApiClient from '~/services/airtable-api'
 import { t } from '~/translations'
 import { autoProvideEmojis } from '~/utils/emojis'
 import { MessageEmbed } from 'discord.js'
-import { INFO_EMBED } from '~/utils/embeds'
+import { INFO_EMBED, LEADERBOARD_EMBED } from '~/utils/embeds'
 
 type Options =
+  | 'leaderboard'
   | 'start'
   | 'players'
   | 'create'
@@ -50,6 +51,9 @@ export class BlindtestCommand extends BaseCommand {
       })
     const argv = input.argv
     switch (option) {
+      case 'leaderboard':
+        this.handleLeaderboard({ bot, args, message, command })
+        break
       case 'skip':
         this.handleSkip({ bot, args, message, command })
         break
@@ -93,6 +97,20 @@ export class BlindtestCommand extends BaseCommand {
     message.reply(
       t('blindtest.commands.categories', { categories: categories.join(' | ') })
     )
+  }
+
+  private async handleLeaderboard({ message, bot }: Command) {
+    if (!message.guild) throw new Error('No guild!')
+    const entries = await bot.leaderboardManager.getLeaderboardForGuild(
+      message.guild.id
+    )
+    if (entries.length === 0) {
+      message.channel.send(
+        t('leaderboard.empty', { ...autoProvideEmojis(message.guild) })
+      )
+    } else {
+      message.channel.send(LEADERBOARD_EMBED(entries))
+    }
   }
 
   private handleSkip({ message, bot }: Command) {
@@ -146,7 +164,7 @@ export class BlindtestCommand extends BaseCommand {
     if (!message.guild) throw new Error('No guild!')
     const blindtest = bot.blindtestManager.blindtests.get(message.guild.id)
     if (blindtest && message.author.id === blindtest.owner.id) {
-      message.reply(
+      message.channel.send(
         t('blindtest.stopping', {
           ...autoProvideEmojis(message.guild),
         })

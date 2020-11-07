@@ -15,7 +15,7 @@ import { Logger } from '~/services/logger'
 import { Song } from '~/entities/song'
 import AirtableApiClient from '~/services/airtable-api'
 import { SongMapper } from '~/mappers/song'
-import { normalize } from '~/utils/string'
+import { getMedal, normalize } from '~/utils/string'
 import { wait } from '~/utils/promise'
 import { t } from '~/translations'
 
@@ -346,25 +346,14 @@ export class Blindtest extends events.EventEmitter {
 
   @computed
   get winner(): Player | null {
-    return this.sortedPlayers.length > 0 && this.sortedPlayers[0].points > 0
-      ? this.sortedPlayers[0]
-      : null
+    if (this.sortedPlayers.length <= 1) return null
+    if (this.sortedPlayers.reduce((acc, val) => acc + val.points, 0) <= 0)
+      return null
+    return this.sortedPlayers[0]
   }
 
   @computed
   get scores(): string {
-    function getMedal(position: number) {
-      switch (position) {
-        case 0:
-          return '🥇 '
-        case 1:
-          return '🥈 '
-        case 2:
-          return '🥉 '
-        default:
-          return ''
-      }
-    }
     return this.sortedPlayers
       .map(
         (p, i) => `

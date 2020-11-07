@@ -2,6 +2,7 @@ import { Locale } from '~/@types/i18n'
 
 const messageIds = [
   'global.separator',
+  'leaderboard.empty',
   'blindtest.stopping',
   'blindtest.user-left',
   'blindtest.cant-join-already-started',
@@ -44,6 +45,10 @@ const messages = new Map<Locale, MessageMap>()
 const french: MessageMap = new Map()
 french
   .set('global.separator', '===================================')
+  .set(
+    'leaderboard.empty',
+    "Aucun leaderboard n'est disponible. Ne faîtes pas les timides, jouez entre vous {rem}"
+  )
   .set(
     'blindtest.on-song-skipped',
     'Tous les joueurs ont votés pour passer la musique, vous avez un peu de mal non ? {hap}'
