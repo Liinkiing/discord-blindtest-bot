@@ -151,6 +151,11 @@ export class Blindtest extends events.EventEmitter {
   }
 
   @computed
+  get isWaiting(): boolean {
+    return this.state === State.Waiting
+  }
+
+  @computed
   get currentSong(): Song | null {
     return this.queue.length > 0 ? this.queue[0] : null
   }
@@ -324,7 +329,11 @@ export class Blindtest extends events.EventEmitter {
         }
       }
 
-      return this._results.get(this.currentSong.url)!
+      const result = this._results.get(this.currentSong.url)!
+      if (result.foundArtist && result.foundTitle) {
+        this.changeState(State.Waiting)
+      }
+      return result
     }
 
     return { foundArtist: false, foundTitle: false }

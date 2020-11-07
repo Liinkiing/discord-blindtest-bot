@@ -19,6 +19,8 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production node -r pretty-error/start -r dotenv-flow/config dist/cjs/index.js",
     "dev": "cross-env NODE_ENV=development nodemon",
+    "ts:check": "tsc --noEmit",
+    "lint": "eslint --no-error-on-unmatched-pattern --cache --fix --report-unused-disable-directives src/**/*.{js,ts,jsx,tsx}",
     "build": "rimraf dist && rollup -c",
     "build:watch": "rimraf dist && rollup -c -w"
   },
@@ -52,6 +54,7 @@
     "@types/fluent-ffmpeg": "^2.1.16",
     "@types/lodash": "^4.14.164",
     "@types/rollup": "^0.54.0",
+    "@types/ws": "^7.2.9",
     "@types/yargs": "^15.0.9",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",

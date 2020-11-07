@@ -236,7 +236,7 @@ export class BlindtestManager extends BaseManager {
     const guildBlintest = this.blindtests.get(blindtest.guildId)
     const channel = this._channels.get(blindtest.guildId)
     const streamDispatcher = this._streamDispatchers.get(blindtest.guildId)
-    if (channel && guildBlintest) {
+    if (channel && guildBlintest && guildBlintest.isWaiting) {
       if (streamDispatcher) {
         streamDispatcher.pause(true)
       }
