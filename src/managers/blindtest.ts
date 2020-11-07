@@ -123,12 +123,12 @@ export class BlindtestManager extends BaseManager {
   private onEnd = async (blindtest: Blindtest): Promise<void> => {
     const guildBlindtest = this.blindtests.get(blindtest.guildId)
     const channel = this._channels.get(blindtest.guildId)
-    await this.bot.leaderboardManager.saveBlindtest(blindtest)
 
     if (channel && guildBlindtest) {
       channel.send(t('blindtest.finished'))
       channel.send(guildBlindtest.scores)
       this.endBlindtest(blindtest)
+      await this.bot.leaderboardManager.saveBlindtest(blindtest)
     }
   }
 
