@@ -110,7 +110,7 @@ french
   .set('blindtest.bonus.fast', 'En moins de 6s en plus, pas mal')
   .set(
     'blindtest.bonus.sonic',
-    'GOTTA GO FAST {sanic}, tu as trouvé en moins de 3s ça devrait être toi le bot'
+    'GOTTA GO FAST COMME SANIC, tu as trouvé en moins de 3s ça devrait être toi le bot'
   )
   .set(
     'blindtest.finished',
