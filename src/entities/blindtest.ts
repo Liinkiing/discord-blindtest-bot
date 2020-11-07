@@ -183,7 +183,7 @@ export class Blindtest extends events.EventEmitter {
       if (this._categories.length > 0) {
         songs = songs.filter(s =>
           s.genres.some(c =>
-            this._categories.map(normalize).includes(normalize(c))
+            this._categories.map(c => normalize(c)).includes(normalize(c))
           )
         )
       }
@@ -276,58 +276,8 @@ export class Blindtest extends events.EventEmitter {
     if (!player || !this.currentSong)
       return { foundArtist: false, foundTitle: false }
     if (this.currentSong && !message.author.bot && !message.partial) {
-      if (this.currentSong.artists.length === 0 || this._skipArtists) {
-        this._results.get(this.currentSong.url)!.foundArtist = true
-      }
-      if (
-        this.currentSong.artists.length > 0 &&
-        this.currentSong.artists
-          .map(normalize)
-          .some(artist => normalize(message.content).includes(artist))
-      ) {
-        if (
-          this._results.has(this.currentSong.url) &&
-          !this._results.get(this.currentSong.url)!.foundArtist
-        ) {
-          // Nobody have found the artist yet
-          const bonusPoints = this.computeBonusPoint(
-            Date.now() - this._timestamp
-          )
-          player.addPoints(POINTS_PER_ARTIST + bonusPoints)
-          this.emit(
-            'on-artists-found',
-            this.currentSong.artists,
-            player,
-            message,
-            bonusPoints
-          )
-
-          this._results.get(this.currentSong.url)!.foundArtist = true
-        }
-      }
-      if (
-        normalize(message.content).includes(normalize(this.currentSong.title))
-      ) {
-        if (
-          this._results.has(this.currentSong.url) &&
-          !this._results.get(this.currentSong.url)!.foundTitle
-        ) {
-          // Nobody have found the title yet
-          const bonusPoints = this.computeBonusPoint(
-            Date.now() - this._timestamp
-          )
-          player.addPoints(POINTS_PER_TITLE + bonusPoints)
-          this.emit(
-            'on-title-found',
-            this.currentSong.title,
-            player,
-            message,
-            bonusPoints
-          )
-
-          this._results.get(this.currentSong.url)!.foundTitle = true
-        }
-      }
+      this.guessArtist(message, player)
+      this.guessTitle(message, player)
 
       const result = this._results.get(this.currentSong.url)!
       if (result.foundArtist && result.foundTitle) {
@@ -337,6 +287,65 @@ export class Blindtest extends events.EventEmitter {
     }
 
     return { foundArtist: false, foundTitle: false }
+  }
+
+  private guessTitle(message: Message, player: Player): void {
+    if (!this.currentSong) return
+    const content = normalize(message.content)
+    const title = normalize(this.currentSong.title, { split: true })
+    if (content.includes(title)) {
+      if (
+        this._results.has(this.currentSong.url) &&
+        !this._results.get(this.currentSong.url)!.foundTitle
+      ) {
+        // Nobody have found the title yet
+        const bonusPoints = this.computeBonusPoint(Date.now() - this._timestamp)
+        player.addPoints(POINTS_PER_TITLE + bonusPoints)
+        this.emit(
+          'on-title-found',
+          this.currentSong.title,
+          player,
+          message,
+          bonusPoints
+        )
+
+        this._results.get(this.currentSong.url)!.foundTitle = true
+      }
+    }
+  }
+
+  private guessArtist(message: Message, player: Player): void {
+    if (!this.currentSong) return
+    const content = normalize(message.content)
+    const artists =
+      this.currentSong.artists.length > 0
+        ? this.currentSong.artists.map(a => normalize(a))
+        : []
+    if (this.currentSong.artists.length === 0 || this._skipArtists) {
+      this._results.get(this.currentSong.url)!.foundArtist = true
+    }
+    if (
+      artists.length > 0 &&
+      artists.some(artist => content.includes(artist))
+    ) {
+      if (
+        this._results.has(this.currentSong.url) &&
+        !this._results.get(this.currentSong.url)!.foundArtist
+      ) {
+        // Nobody have found the artist yet
+        const bonusPoints = this.computeBonusPoint(Date.now() - this._timestamp)
+        player.addPoints(POINTS_PER_ARTIST + bonusPoints)
+        this.emit(
+          'on-artists-found',
+          this.currentSong.artists,
+          player,
+          message,
+          bonusPoints
+        )
+
+        this._results.get(this.currentSong.url)!.foundArtist = true
+      }
+    }
   }
 
   @computed
