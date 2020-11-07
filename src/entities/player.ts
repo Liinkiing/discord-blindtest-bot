@@ -6,7 +6,7 @@ import { action, makeObservable, observable } from 'mobx'
 export class Player {
   public id: DiscordUserID
   public displayName: string
-  @observable public points = 0
+  @observable public points = 2
 
   constructor(member: GuildMember) {
     this.id = member.id

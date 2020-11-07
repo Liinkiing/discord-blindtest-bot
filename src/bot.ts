@@ -2,7 +2,7 @@ import { Client } from 'discord.js'
 import { BaseCommand } from '~/commands/base-command'
 import * as Commands from '~/commands'
 import * as Managers from '~/managers'
-import { BlindtestManager } from '~/managers'
+import { BlindtestManager, LeaderboardManager } from '~/managers'
 import { Logger } from '~/services/logger'
 import { BaseManager } from '~/managers/manager'
 
@@ -21,6 +21,12 @@ export class Bot {
     return this._managers.find(
       manager => manager instanceof BlindtestManager
     ) as BlindtestManager
+  }
+
+  get leaderboardManager(): LeaderboardManager {
+    return this._managers.find(
+      manager => manager instanceof LeaderboardManager
+    ) as LeaderboardManager
   }
 
   get commands(): BaseCommand[] {
@@ -52,6 +58,11 @@ export class Bot {
 
   private initManagers(): void {
     Logger.info('Initializing managers')
-    this._managers.push(...[new Managers.BlindtestManager(this)])
+    this._managers.push(
+      ...[
+        new Managers.BlindtestManager(this),
+        new Managers.LeaderboardManager(this),
+      ]
+    )
   }
 }

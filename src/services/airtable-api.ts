@@ -17,7 +17,13 @@ class AirtableApiClientApp {
   public songs(): Table {
     return this.client
       .base(this.baseId)
-      .table(process.env.AIRTABLE_TABLE_NAME ?? 'songs')
+      .table(process.env.AIRTABLE_SONGS_TABLE_NAME ?? 'songs')
+  }
+
+  public leaderboard(): Table {
+    return this.client
+      .base(this.baseId)
+      .table(process.env.AIRTABLE_LEADERBOARD_TABLE_NAME ?? 'leaderboard')
   }
 }
 

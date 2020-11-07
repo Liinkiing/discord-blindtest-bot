@@ -1,3 +1,4 @@
 import { BlindtestManager } from './blindtest'
+import { LeaderboardManager } from './leaderboard'
 
-export { BlindtestManager }
+export { BlindtestManager, LeaderboardManager }

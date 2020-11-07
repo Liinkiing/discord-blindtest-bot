@@ -340,6 +340,18 @@ export class Blindtest extends events.EventEmitter {
   }
 
   @computed
+  get sortedPlayers(): Player[] {
+    return [...this.players].sort((a, b) => b.points - a.points)
+  }
+
+  @computed
+  get winner(): Player | null {
+    return this.sortedPlayers.length > 0 && this.sortedPlayers[0].points > 0
+      ? this.sortedPlayers[0]
+      : null
+  }
+
+  @computed
   get scores(): string {
     function getMedal(position: number) {
       switch (position) {
@@ -353,8 +365,7 @@ export class Blindtest extends events.EventEmitter {
           return ''
       }
     }
-    return [...this.players]
-      .sort((a, b) => b.points - a.points)
+    return this.sortedPlayers
       .map(
         (p, i) => `
 ${getMedal(i)}${p.displayName} : ${p.points} pts`
