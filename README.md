@@ -9,7 +9,7 @@ play some blind tests in discord.
 
 ## Features
 
-### Get song directly from Spotify
+### Get song directly from Spotify and Skip song feature
 
 <img width="300" src="https://github.com/Liinkiing/discord-blindtest-bot/raw/master/.github/screen_1.png?raw=true">
 
