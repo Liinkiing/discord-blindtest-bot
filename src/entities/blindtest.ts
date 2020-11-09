@@ -41,6 +41,7 @@ type YouTubeURL = string
 export type BlindtestOptions = {
   limit: number
   categories: string[]
+  artists: string[]
   skipArtists?: boolean
   showScoreAfterEachSong?: boolean
 }
@@ -71,12 +72,13 @@ export class Blindtest extends events.EventEmitter {
   private readonly _limit: number = 0
   private readonly _skipArtists: boolean = false
   private readonly _categories: string[] = []
+  private readonly _artists: string[] = []
   private _timestamp = Date.now()
   private _results: Map<YouTubeURL, FoundType> = new Map()
   private _timeout: NodeJS.Timeout | number | null = null
 
   constructor(
-    options: BlindtestOptions = { limit: 0, categories: [] },
+    options: BlindtestOptions = { limit: 0, categories: [], artists: [] },
     guildId: string
   ) {
     super()
@@ -84,6 +86,7 @@ export class Blindtest extends events.EventEmitter {
     this.guildId = guildId
     this._limit = options.limit
     this._categories = options.categories
+    this._artists = options.artists
     this.showScoreAfterEachSong = options.showScoreAfterEachSong ?? true
     this._skipArtists = options.skipArtists ?? false
     autorun(() => {
@@ -184,6 +187,13 @@ export class Blindtest extends events.EventEmitter {
         songs = songs.filter(s =>
           s.genres.some(c =>
             this._categories.map(c => normalize(c)).includes(normalize(c))
+          )
+        )
+      }
+      if (this._artists.length > 0) {
+        songs = songs.filter(s =>
+          s.artists.some(a =>
+            this._artists.map(a => normalize(a)).includes(normalize(a))
           )
         )
       }

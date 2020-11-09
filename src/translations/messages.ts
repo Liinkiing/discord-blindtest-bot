@@ -30,6 +30,7 @@ const messageIds = [
   'blindtest.create-success',
   'blindtest.create-limit',
   'blindtest.create-category',
+  'blindtest.create-artists',
   'blindtest.create-skip-artist',
   'listen-on-spotify',
   'blindtest.on-song-skipped',
@@ -136,7 +137,11 @@ french
   )
   .set(
     'blindtest.create-category',
-    'Seul les musiques appartenant aux catégories suivantes seront disponibles : {categories}.'
+    'Seules les musiques appartenant aux catégories suivantes seront disponibles : {categories}.'
+  )
+  .set(
+    'blindtest.create-artists',
+    'Seules les musiques dont les artistes sont les suivants seront disponibles : {artists}.'
   )
   .set(
     'blindtest.create-skip-artist',

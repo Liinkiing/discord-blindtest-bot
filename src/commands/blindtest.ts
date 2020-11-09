@@ -7,6 +7,7 @@ import { t } from '~/translations'
 import { autoProvideEmojis } from '~/utils/emojis'
 import { MessageEmbed } from 'discord.js'
 import { INFO_EMBED, LEADERBOARD_EMBED } from '~/utils/embeds'
+import { BlindtestOptions } from '~/entities/blindtest'
 
 type Options =
   | 'leaderboard'
@@ -46,6 +47,11 @@ export class BlindtestCommand extends BaseCommand {
       .option('boardSong', { alias: 'b', boolean: true, default: true })
       .option('categories', {
         alias: 'c',
+        array: true,
+        default: [],
+      })
+      .option('artists', {
+        alias: 'a',
         array: true,
         default: [],
       })
@@ -239,8 +245,10 @@ export class BlindtestCommand extends BaseCommand {
       categories,
       skipArtists,
       boardSong,
+      artists,
     }: {
       categories: string[]
+      artists: string[]
       limit: number
       skipArtists: boolean
       boardSong: boolean
@@ -261,24 +269,48 @@ export class BlindtestCommand extends BaseCommand {
           message,
           {
             limit,
+            artists,
             categories,
             skipArtists,
             showScoreAfterEachSong: boardSong,
           }
         )
         message.reply(
-          `${t('blindtest.create-success')} ${
-            limit > 0 ? t('blindtest.create-limit', { limit }) : ''
-          } ${
-            categories.length > 0
-              ? t('blindtest.create-category', {
-                  categories: categories.join(', '),
-                })
-              : ''
-          } ${skipArtists ? t('blindtest.create-skip-artist') : ''}`
+          this.buildCreateBlindtestMessage({
+            limit,
+            categories,
+            skipArtists,
+            artists,
+          })
         )
       }
     }
+  }
+
+  private buildCreateBlindtestMessage({
+    limit,
+    categories,
+    skipArtists,
+    artists,
+  }: BlindtestOptions): string {
+    let result = t('blindtest.create-success')
+    if (limit > 0) {
+      result += ` ${t('blindtest.create-limit', { limit })}`
+    }
+    if (categories.length > 0) {
+      result += ` ${t('blindtest.create-category', {
+        categories: categories.join(', '),
+      })}`
+    }
+    if (artists.length > 0) {
+      result += ` ${t('blindtest.create-artists', {
+        artists: artists.join(', '),
+      })}`
+    }
+    if (skipArtists) {
+      result += ` ${t('blindtest.create-skip-artist')}`
+    }
+    return result
   }
 
   private handlePlayers({ bot, message }: Command) {

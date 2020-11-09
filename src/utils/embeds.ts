@@ -44,11 +44,12 @@ export const INFO_EMBED = (): MessageEmbed =>
     .setTitle('**MINA, GAMBATENE**')
     .addField('!bt help', 'Affiche cette aide')
     .addField(
-      '!bt create `--category | -c <CATEGORY>` `--limit | -l <LIMIT>` `--boardSong | -b <TRUE|FALSE>` `--skipArtists | -s <TRUE|FALSE>`',
+      '!bt create `--category | -c <CATEGORY>` `--artists | -a <ARTISTS>` `--limit | -l <LIMIT>` `--boardSong | -b <TRUE|FALSE>` `--skipArtists | -s <TRUE|FALSE>`',
       'Créér un blindtest'
     )
     .addFields(
       { name: '--category', value: 'Filtrer par catégories', inline: true },
+      { name: '--artists', value: 'Filtrer par artistes', inline: true },
       {
         name: '--limit',
         value: 'Limite le nombre maximum de musiques',
