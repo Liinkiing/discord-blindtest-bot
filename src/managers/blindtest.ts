@@ -170,7 +170,7 @@ export class BlindtestManager extends BaseManager {
     if (channel && guildBlindtest) {
       channel.send(
         t('blindtest.owner-left', {
-          user: owner.displayName,
+          user: `<@${owner.id}>`,
           ...autoProvideEmojis(this.bot.client.guilds.cache.first()),
         })
       )

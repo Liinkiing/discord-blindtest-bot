@@ -103,7 +103,7 @@ french
   .set('blindtest.max-duration-exceeded-artists', ', par {artists}')
   .set(
     'blindtest.owner-left',
-    "Étant donné que le créateur du blindtest est parti (sale lâche {hap}), @{user} va reprendre la relève. C'est à toi désormais que relève la dure responsabilité de démarrer le blindtest"
+    "Étant donné que le créateur du blindtest est parti (sale lâche {hap}), {user} va reprendre la relève. C'est à toi désormais que relève la dure responsabilité de démarrer le blindtest"
   )
   .set(
     'blindtest.on-artist-found',

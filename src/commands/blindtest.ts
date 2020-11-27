@@ -203,12 +203,6 @@ export class BlindtestCommand extends BaseCommand {
           ...autoProvideEmojis(message.guild),
         })
       )
-    } else if (blindtest && message.member && blindtest.isRunning) {
-      message.reply(
-        t('blindtest.cant-join-already-started', {
-          ...autoProvideEmojis(message.guild),
-        })
-      )
     } else {
       message.reply(
         t('blindtest.user-joined', { ...autoProvideEmojis(message.guild) })
@@ -229,12 +223,6 @@ export class BlindtestCommand extends BaseCommand {
     ) {
       blindtest.removePlayer(message.member)
       message.reply(t('blindtest.user-left'))
-    } else {
-      message.reply(
-        t('blindtest.already-joined', {
-          ...autoProvideEmojis(message.guild),
-        })
-      )
     }
   }
 
