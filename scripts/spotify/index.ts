@@ -10,14 +10,17 @@ const removeParens = true
   // const client = new Spotify({
   //   accessToken: process.env.SPOTIFY_ACCESS_TOKEN,
   // })
-  let titles = (await AirtableApiClient.songs().select().all()).map(
-    record => record.get('Title') as string
-  )
+  let titles = (await AirtableApiClient.songs().select().all())
+    .map(record => record.get('Title') as string)
+    .filter(Boolean)
   let i = 0
   for (const track of tracks) {
     // const artistId = track.artistLink!.split('/').pop()!
     // const artist = await client.getArtist(artistId)
     let title = track.title
+    if (!title) {
+      throw new Error('No title found for ' + JSON.stringify(title))
+    }
     if (removeAfterDash) {
       title = title.split('-')[0]
       titles = titles.map(t => t.split('-')[0])
