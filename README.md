@@ -1,4 +1,4 @@
-# INeedAGoodName™
+# Klee
 
 A bot made because I did not found any bot which would offer the ability to
 play some blind tests in discord.
