@@ -1,8 +1,11 @@
 {
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
   "extends": [
-    "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended",
     "prettier"
   ],
   "env": {
@@ -14,9 +17,6 @@
     "ecmaVersion": 2017,
     "sourceType": "module"
   },
-  "plugins": [
-    "@typescript-eslint/eslint-plugin"
-  ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",

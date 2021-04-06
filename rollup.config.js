@@ -39,6 +39,7 @@ const config = {
   ],
   plugins: [
     replace({
+      preventAssignment: true,
       'process.env.NODE_ENV': env,
     }),
     resolve({ preferBuiltins: true }),

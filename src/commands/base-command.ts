@@ -44,5 +44,5 @@ export abstract class BaseCommand {
     return this._prefix
   }
 
-  public abstract async execute(command: Command): Promise<void>
+  public abstract execute(command: Command): Promise<void>
 }
